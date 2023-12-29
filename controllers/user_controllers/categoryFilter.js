@@ -9,44 +9,8 @@ const cookieparser = require("cookie-parser");
 const couponCollection = require("../../models/coupons");
 require("dotenv").config();
 
+
 // filter
-// module.exports.filterCategory = async(req,res) => {
-//   try{
-//     const loggedIn = req.cookies.loggedIn;
-//     const userData = await userCollection.findOne({email: req.user})
-//     const username = userData.username;
-//     const categoryId = req.params.categoryId
-
-//     let sortOrder = 0;
-//     if (req.query.sort === "desc") {
-//       sortOrder = -1;
-//     } else if (req.query.sort === "asc") {
-//       sortOrder = 1;
-//     }
-
-//     const category = await categoryCollection.findById(categoryId)
-//     const categoryName = category.catgName
-
-//     if(req.query.sort){
-//       const productdata = await productCollection
-//       .find({ productCategory: categoryName })
-//       .sort({ sellingPrice: sortOrder });
-//     } 
-
-//     const productdata = await productCollection
-//     .find({ productCategory: categoryName })
-
-//     const productCount = productdata.length;
-//     const categorydata =  await categoryCollection.find()
-//     console.log(productdata)
-//     res.render("user-productfilter", { loggedIn, username, productdata, productCount, categorydata})
-//   }catch(error) {
-//     console.error("Error:", error);
-//   }
-// }
-
-
-
 module.exports.filterCategory = async (req, res) => {
   try {
     await offerController.deactivateExpiredOffers();

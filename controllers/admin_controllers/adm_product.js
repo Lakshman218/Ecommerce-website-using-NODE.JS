@@ -199,16 +199,8 @@ module.exports.deleteImage = async (req, res) => {
 
     console.log('Deleting Image:', imagepath);
 
-    // Log the current product data before the deletion
-    // const productBeforeDeletion = await productCollection.findOne({ _id: productId });
-    // console.log('Product Before Deletion:', productBeforeDeletion);
-
     // Update the document to pull the image
-    await productCollection.updateOne({ _id: productId }, { $pull: { productImg: imagepath } });
-
-    // Log the updated product data after the deletion
-    // const productAfterDeletion = await productCollection.findOne({ _id: productId });
-    // console.log('Product After Deletion:', productAfterDeletion);
+    await productCollection.updateOne({ _id: productId }, { $pull: { productImg: imagepath } })
 
     // Render the view with the updated product data
     const productdata = await productCollection.findOne({ _id: productId });
