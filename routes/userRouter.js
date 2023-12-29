@@ -93,9 +93,9 @@ userRouter.post("/applyreferel", userMiddleware.verifyUser, userMiddleware.check
 userRouter.post("/filter-category", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, filterControll.filterCategory)
 userRouter.post("/search", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, filterControll.searchProducts)
 
-// Download Invoice
+
 // userRouter.get("/download-Invoice", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, incvoiceControll.downloadInvoice)
-userRouter.get("/get-Invoice", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, incvoiceControll.getInvoice)
+// userRouter.get("/get-Invoice", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, incvoiceControll.getInvoice)
 
 
 

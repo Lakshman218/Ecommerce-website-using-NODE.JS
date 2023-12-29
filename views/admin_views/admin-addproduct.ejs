@@ -298,104 +298,107 @@
 
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
-                    const form = document.getElementById('productForm');
-                    form.addEventListener('submit', function (event) {
-                        if (!validateForm()) {
-                            event.preventDefault();
-                        }
-                    });
+    const form = document.getElementById('productForm');
+    form.addEventListener('submit', function (event) {
+        if (!validateForm()) {
+            event.preventDefault();
+        }
+    });
 
-                    function validateForm() {
-                        const productName = document.getElementById('productName');
-                        const productDescription = document.getElementById('productDiscription');
-                        const regularPrice = document.getElementById('regularPrice');
-                        const sellingPrice = document.getElementById('sellingPrice');
-                        const productStatus = document.getElementById('productStatus');
-                        const productCategory = document.getElementById('category');
-                        const productBrand = document.getElementById('productBrand');
-                        const productSize = document.getElementById('productSize');
-                        const productStock = document.getElementById('productStock');
-                        const productImg = document.getElementById('productImg');
+    function validateForm() {
+        const productName = document.getElementById('productName');
+        const productDescription = document.getElementById('productDiscription');
+        // Uncomment the following line for regular price validation
+        // const regularPrice = document.getElementById('regularPrice');
+        const sellingPrice = document.getElementById('sellingPrice');
+        const productStatus = document.getElementById('productStatus');
+        const productCategory = document.getElementById('category');
+        const productBrand = document.getElementById('productBrand');
+        const productSize = document.getElementById('productSize');
+        const productStock = document.getElementById('productStock');
+        const productImg = document.getElementById('productImg');
 
-                        // Reset previous error messages
-                        resetErrorMessages();
+        // Reset previous error messages
+        resetErrorMessages();
 
-                        // Check for empty fields
-                        if (!productName.value.trim()) {
-                            displayError(productName, 'Please enter a product name.');
-                            return false;
-                        }
+        // Check for empty fields and validate inputs
+        if (!productName.value.trim()) {
+            displayError(productName, 'Please enter a product name.');
+            return false;
+        }
 
-                        if (!productDescription.value.trim()) {
-                            displayError(productDescription, 'Please enter a product description.');
-                            return false;
-                        }
+        if (!productDescription.value.trim()) {
+            displayError(productDescription, 'Please enter a product description.');
+            return false;
+        }
 
-                        if (isNaN(parseFloat(regularPrice.value)) || parseFloat(regularPrice.value) <= 0) {
-                            displayError(regularPrice, 'Regular price must be a number greater than 0.');
-                            return false;
-                        }
+        // Uncomment the following lines for regular price validation
+        // if (isNaN(parseFloat(regularPrice.value)) || parseFloat(regularPrice.value) <= 0) {
+        //     displayError(regularPrice, 'Regular price must be a number greater than 0.');
+        //     return false;
+        // }
 
-                        if (isNaN(parseFloat(sellingPrice.value)) || parseFloat(sellingPrice.value) <= 0) {
-                            displayError(sellingPrice, 'Selling price must be a number greater than 0.');
-                            return false;
-                        }
+        if (isNaN(parseFloat(sellingPrice.value)) || parseFloat(sellingPrice.value) <= 0) {
+            displayError(sellingPrice, 'Selling price must be a number greater than 0.');
+            return false;
+        }
 
-                        if (productStatus.value === 'Select status') {
-                            displayError(productStatus, 'Please select a status.');
-                            return false;
-                        }
+        if (productStatus.value === 'Select status') {
+            displayError(productStatus, 'Please select a status.');
+            return false;
+        }
 
-                        if (productCategory.value === 'Select a category') {
-                            displayError(productCategory, 'Please select a category.');
-                            return false;
-                        }
+        if (productCategory.value === 'Select a category') {
+            displayError(productCategory, 'Please select a category.');
+            return false;
+        }
 
-                        if (!productBrand.value.trim()) {
-                            displayError(productBrand, 'Please enter a product brand.');
-                            return false;
-                        }
+        if (!productBrand.value.trim()) {
+            displayError(productBrand, 'Please enter a product brand.');
+            return false;
+        }
 
-                        if (isNaN(parseFloat(productSize.value)) || parseFloat(productSize.value) <= 0) {
-                            displayError(productSize, 'Size must be a number greater than 0.');
-                            return false;
-                        }
+        if (isNaN(parseFloat(productSize.value)) || parseFloat(productSize.value) <= 0) {
+            displayError(productSize, 'Size must be a number greater than 0.');
+            return false;
+        }
 
-                        if (isNaN(parseFloat(productStock.value)) || parseFloat(productStock.value) < 0) {
-                            displayError(productStock, 'Stock must be a number greater than 0.');
-                            return false;
-                        }
+        if (isNaN(parseFloat(productStock.value)) || parseFloat(productStock.value) < 0) {
+            displayError(productStock, 'Stock must be a number greater than or equal to 0.');
+            return false;
+        }
 
-                        if (productImg.files.length === 0) {
-                            displayError(productImg, 'Please upload an image.');
-                            return false;
-                        }
+        if (productImg.files.length === 0) {
+            displayError(productImg, 'Please upload an image.');
+            return false;
+        }
 
-                        // Check file type
-                        const allowedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                        for (const file of productImg.files) {
-                            if (!allowedFileTypes.includes(file.type)) {
-                                displayError(productImg, 'Please upload only images (JPEG, PNG, GIF).');
-                                return false;
-                            }
-                        }
+        // Check file type
+        const allowedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        for (const file of productImg.files) {
+            if (!allowedFileTypes.includes(file.type)) {
+                displayError(productImg, 'Please upload only images (JPEG, PNG, GIF).');
+                return false;
+            }
+        }
 
-                        return true;
-                    }
+        return true;
+    }
 
-                    function displayError(element, message) {
-                        const errorDiv = document.createElement('div');
-                        errorDiv.className = 'error-message text-danger'; // Add 'text-danger' class for red text color
-                        errorDiv.textContent = message;
-                        element.parentNode.appendChild(errorDiv);
-                    }
+    function displayError(element, message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message text-danger'; // Add 'text-danger' class for red text color
+        errorDiv.textContent = message;
+        errorDiv.id = `${element.id}Error`; // Unique ID for each error message
+        element.parentNode.appendChild(errorDiv);
+    }
 
-                    function resetErrorMessages() {
-                        const errorMessages = document.querySelectorAll('.error-message');
-                        errorMessages.forEach(message => message.remove());
-                    }
-                    
-                });
+    function resetErrorMessages() {
+        const errorMessages = document.querySelectorAll('.error-message');
+        errorMessages.forEach(message => message.remove());
+    }
+});
+
             </script>
 
             <script>
