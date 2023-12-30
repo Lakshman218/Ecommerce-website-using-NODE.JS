@@ -47,7 +47,7 @@ module.exports.adminPostLogin = async(req,res) => {
           email = req.body.email;
           const token = jwt.sign(email, secretkey);
           res.cookie("Admintoken", token, { maxAge: 24 * 60 * 60 * 1000 });
-          res.cookie("loggedIn", true, { maxAge: 24 * 60 * 60 * 1000 });
+          res.cookie("AdminloggedIn", true, { maxAge: 24 * 60 * 60 * 1000 });
           res.status(200);
           // res.render("admin-dashboard")
             res.redirect("/admin/admin-dash")

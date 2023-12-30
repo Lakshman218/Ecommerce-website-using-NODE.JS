@@ -36,7 +36,7 @@ module.exports.postLogin = async (req, res) => {
                   const token = jwt.sign(email, secretkey);
                   res.cookie("token", token, { maxAge: 24 * 60 * 60 * 1000 });
                   res.cookie("loggedIn", true, { maxAge: 24 * 60 * 60 * 1000 });
-                  res.cookie("username", logindata.username);
+                  // res.cookie("username", logindata.username);
                   res.status(200).json({ success: true });
                 //   res.redirect("/")
               } catch (error) {

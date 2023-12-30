@@ -469,7 +469,7 @@ module.exports.cancelSingleOrder = async(req,res) => {
     const orderData = await orderCollection.findById(orderId)
     const product = orderData.products.find((item) => item.productId.equals(productId));
     const productAmount = product.orderPrice;
-    console.log("productAmount: ",productAmount);
+    console.log("productAmount: ",productAmount); 
 
    // updating status
     const updateStatus = { $set: { "products.$.status": "Cancelled" } };

@@ -37,10 +37,12 @@
                                 <% if (!loggedIn) { %>
                                     <li><i class="fi-rs-user"></i><a href="/login">Log In</a></li>
                                     <li><i class="fi-rs-user"></i><a href="/signup">Sign Up</a></li>
-                                <% } else { %>
+                                <% } else if (username) { %>
                                     <li><i class="fi-rs-user"></i><a href="/account"><%= username %></a></li>
                                     <li><i class="fi-rs-user"></i><a href="/logout">Logout</a></li>
-                                <% } %> 
+                                <% } else {%>
+                                    
+                                 <%} %> 
                                 
                                 <!-- <li><i class="fi-rs-user"></i><a href="/login">Log In</a></li>
                                 <li><i class="fi-rs-user"></i><a href="/signup">Sign Up</a></li>  -->
