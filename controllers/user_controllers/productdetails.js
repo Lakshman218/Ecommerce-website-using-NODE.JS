@@ -16,8 +16,10 @@ module.exports.productDetails = async(req,res) => {
     const username = userData.username;
     const Idproduct = req.params.productId;
     const productdata = await productCollection.findById({_id:Idproduct})
+    const category = productdata.productCategory
+    const relatedProducts = await productCollection.find({productCategory: category })
     const offerData = await offerCollection.find({ isActive: true, status: "Unblock" })
-    res.render("user-productdetails", {loggedIn, username, productdata, offerData})
+    res.render("user-productdetails", {loggedIn, username, productdata, offerData, relatedProducts})
   } catch(error) {
     console.error(error)
   }

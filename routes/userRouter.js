@@ -95,7 +95,7 @@ userRouter.post("/search", userMiddleware.verifyUser, userMiddleware.checkBlocke
 
 
 // userRouter.get("/download-Invoice", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, incvoiceControll.downloadInvoice)
-// userRouter.get("/get-Invoice", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, incvoiceControll.getInvoice)
+userRouter.get("/get-Invoice", userMiddleware.verifyUser, userMiddleware.checkBlockedStatus, incvoiceControll.getInvoice)
 
 
 

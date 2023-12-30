@@ -740,11 +740,11 @@
                                         </div>
                                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                         <div class="detail-extralink">
-                                            <div class="detail-qty border radius">
+                                            <!-- <div class="detail-qty border radius">
                                                 <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
                                                 <span class="qty-val">1</span>
                                                 <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
-                                            </div>
+                                            </div> -->
                                             <div class="product-extra-link2">
                                                 <a aria-label="Add To Cart" class="action-btn hover-up addingcart-btn" data-product-id="<%= productdata._id %>" id="addingcart" style="width: 120px; background-color: #088178 ;">
                                                     Add to cart
@@ -752,7 +752,7 @@
                                                 <a aria-label="Add To Wishlist" class="action-btn hover-up addingwhishlist-btn" data-product-id="<%= productdata._id %>" id="addingwhishlist" style="background-color: #088178 ;">
                                                     <i class="fi-rs-heart"></i>
                                                 </a>
-                                                <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
+                                                <!-- <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a> -->
                                             </div>
                                         </div>
                                         <ul class="product-meta font-xs color-grey mt-50">
@@ -762,7 +762,7 @@
                                                 <% if (productdata.productStock === 0) { %>
                                                     <li>Availability:<li class="text-danger"> Out of stock</li><span class="in-stock text-success ml-5"></span>
                                                   <% } else {%>
-                                                    <li>Availability: Yes<span class="in-stock text-success ml-5"></span>
+                                                    <li>Availability: <br> <%= productdata.productStock %> in stock<span class="in-stock text-success ml-5"></span>
                                                     <%} %>
                                             </span></li>
                                         </ul>
@@ -908,25 +908,24 @@
                                         <p><%= productdata.productDiscription %></p>
                                         <ul class="product-more-infor mt-30">
                                             <li><span>Type Of Packing</span> Bottle</li>
-                                            <li><span>Color</span> Green, Pink, Powder Blue, Purple</li>
-                                            <li><span>Quantity Per Case</span> 100ml</li>
+                                            <li><span>Brand</span> <%= productdata.productBrand %></li>
+                                            <li><span>Category</span> <%= productdata.productCategory %></li>
+                                            <li><span>Quantity Per Case</span> <%= productdata.productSize %> ml</li>
                                             <li><span>Ethyl Alcohol</span> 70%</li>
-                                            <li><span>Piece In One</span> Carton</li>
                                         </ul>
                                         <hr class="wp-block-separator is-style-dots">
-                                        <p>Laconic overheard dear woodchuck wow this outrageously taut beaver hey hello far meadowlark imitatively egregiously hugged that yikes minimally unanimous pouted flirtatiously as beaver beheld above forward
-                                            energetic across this jeepers beneficently cockily less a the raucously that magic upheld far so the this where crud then below after jeez enchanting drunkenly more much wow callously irrespective limpet.</p>
+                                        
                                         <h4 class="mt-30">Packaging & Delivery</h4>
                                         <hr class="wp-block-separator is-style-wide">
-                                        <p>Less lion goodness that euphemistically robin expeditiously bluebird smugly scratched far while thus cackled sheepishly rigid after due one assenting regarding censorious while occasional or this more crane
-                                            went more as this less much amid overhung anathematic because much held one exuberantly sheep goodness so where rat wry well concomitantly.
+                                        <p>At Perfumery, we redefine the essence of luxury through an exquisite collection of fragrances that captivate the senses. 
+                                            Immerse yourself in a world of unparalleled sophistication, where each perfume is meticulously crafted to evoke emotion and leave an indelible impression. 
                                         </p>
-                                        <p>Scallop or far crud plain remarkably far by thus far iguana lewd precociously and and less rattlesnake contrary caustic wow this near alas and next and pled the yikes articulate about as less cackled dalmatian
-                                            in much less well jeering for the thanks blindly sentimental whimpered less across objectively fanciful grimaced wildly some wow and rose jeepers outgrew lugubrious luridly irrationally attractively
-                                            dachshund.
+                                        <p>
+                                            Our commitment to quality extends beyond the aromatic notes; it's embodied in our elegant packaging, ensuring that every bottle reflects the prestige of the Perfumery experience. 
+                                            Elevate your senses with our signature scents and embrace the allure of timeless elegance, only at Perfumery.
                                         </p>
                                     </div>
-                                    <h3 class="section-title style-1 mb-30">Additional info</h3>
+                                    <!-- <h3 class="section-title style-1 mb-30">Additional info</h3>
                                     <table class="font-md mb-30">
                                         <tbody>
                                             <tr class="stand-up">
@@ -1014,7 +1013,7 @@
                                                 </td>
                                             </tr>
                                         </tbody>
-                                    </table>
+                                    </table> -->
                                     <div class="social-icons single-share">
                                         <ul class="text-grey-5 d-inline-block">
                                             <li><strong class="mr-10">Share this:</strong></li>
@@ -1024,8 +1023,8 @@
                                             <li class="social-linkedin"><a href="#"><img src="/userAssets/imgs/theme/icons/icon-pinterest.svg" alt=""></a></li>
                                         </ul>
                                     </div>
-                                    <h3 class="section-title style-1 mb-30 mt-30">Reviews (3)</h3>
-                                    <!--Comments-->
+                                    <!-- <h3 class="section-title style-1 mb-30 mt-30">Reviews (3)</h3>
+                                  
                                     <div class="comments-area style-2">
                                         <div class="row">
                                             <div class="col-lg-8">
@@ -1053,7 +1052,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!--single-comment -->
+                                           
                                                     <div class="single-comment justify-content-between d-flex">
                                                         <div class="user justify-content-between d-flex">
                                                             <div class="thumb text-center">
@@ -1076,7 +1075,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!--single-comment -->
+                                                
                                                     <div class="single-comment justify-content-between d-flex">
                                                         <div class="user justify-content-between d-flex">
                                                             <div class="thumb text-center">
@@ -1099,7 +1098,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <!--single-comment -->
+                                                   
                                                 </div>
                                             </div>
                                             <div class="col-lg-4">
@@ -1135,7 +1134,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!--comment form-->
+                                 
                                     <div class="comment-form">
                                         <h4 class="mb-15">Add a review</h4>
                                         <div class="product-rate d-inline-block mb-30">
@@ -1172,155 +1171,77 @@
                                                 </form>
                                             </div>
                                         </div>
+                                    </div> -->
+                                </div>
+                            </div>
+                            <div class="container wow fadeIn animated">
+                                <h3 class="section-title mb-20"><span>Related</span> Products</h3>
+                                <div class="carausel-6-columns-cover position-relative">
+                                    <div class="slider-arrow slider-arrow-2 carausel-6-columns-arrow" id="carausel-6-columns-2-arrows"></div>
+                                    <div class="carausel-6-columns carausel-arrow-center" id="carausel-6-columns-2">
+                                        
+                                        <% relatedProducts.forEach(product => {%>
+                                        <div class="product-cart-wrap small hover-up">
+                                            <div class="product-img-action-wrap">
+                                                <div class="product-img product-img-zoom">
+                                                    <a href="/product-details/<%= product._id %>">
+                                                        <img class="default-img" src="/<%= product.productImg[0] %>" alt="">
+                                                        <img class="hover-img" src="/<%= product.productImg[1] %>" alt="">
+                                                    </a>
+                                                </div>
+                                                <div class="product-action-1">
+                                                    <!-- <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal">
+                                                        <i class="fi-rs-eye"></i></a> -->
+                                                        <a aria-label="Add To Wishlist" class="action-btn hover-up addingwhishlist-btn" data-product-id="<%= product._id %>" id="addingwhishlist">
+                                                            <i class="fi-rs-heart"></i>
+                                                        </a>                                    <% if(product.productStock >0 ){%> 
+                                                        <a aria-label="Add To Cart" class="action-btn hover-up addingcart-btn" data-product-id="<%= product._id %>" id="addingcart">
+                                                            <i class="fi-rs-shopping-bag-add"></i>
+                                                        </a>
+                                                        <%} else {%>
+                                                            <span class="badge text-white" style="background-color: rgb(247, 58, 58); border-radius: 7px;" >Out of Stock</span>
+                                                    <%} %>
+                                                </div>
+                                                <!-- <div class="product-badges product-badges-position product-badges-mrg">
+                                                    <span class="hot">Hot</span>
+                                                </div> -->
+                                            </div>
+                                            <div class="product-content-wrap">
+                                                <h2><a href="/product-details/<%= product._id %>"><%= product.productBrand %></a></h2>
+                                                <div class="rating-result" title="90%">
+                                                    <span>
+                                                    </span>
+                                                </div>
+                                                <div class="product-price">
+                                                    <% if (product.discountStatus === 'Active' && typeof product.discountPercent === 'number') { %>
+                                                        <span>₹<%= product.sellingPrice - (product.sellingPrice * product.discountPercent) / 100 %></span>
+                                                        <span class="old-price">₹<%= product.sellingPrice %></span>
+                                                        <!-- <span class="save-price font-md color3 ml-5 text-danger" style="font-size: small;"> - <%= product.discountPercent %>% </span> -->
+                                                    <% } else { %>
+                                                        <span>₹<%= product.sellingPrice %></span>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <%}) %>
+                                        
                                     </div>
                                 </div>
                             </div>
-                            <div class="row mt-60">
-                                <div class="col-12">
-                                    <h3 class="section-title style-1 mb-30">Related products</h3>
-                                </div>
-                                <div class="col-12">
-                                    <div class="row related-products">
-                                        <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                            <div class="product-cart-wrap small hover-up">
-                                                <div class="product-img-action-wrap">
-                                                    <div class="product-img product-img-zoom">
-                                                        <a href="shop-product-right.html" tabindex="0">
-                                                            <img class="default-img" src="/userAssets/imgs/shop/product-2-1.jpg" alt="">
-                                                            <img class="hover-img" src="/userAssets/imgs/shop/product-2-2.jpg" alt="">
-                                                        </a>
-                                                    </div>
-                                                    <div class="product-action-1">
-                                                        <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
 
-                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                        <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                    </div>
-                                                    <div class="product-badges product-badges-position product-badges-mrg">
-                                                        <span class="hot">Hot</span>
-                                                    </div>
-                                                </div>
-                                                <div class="product-content-wrap">
-                                                    <h2><a href="shop-product-right.html" tabindex="0">Ulstra Bass Headphone</a></h2>
-                                                    <div class="rating-result" title="90%">
-                                                        <span>
-                                                        </span>
-                                                    </div>
-                                                    <div class="product-price">
-                                                        <span>$238.85 </span>
-                                                        <span class="old-price">$245.8</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                            <div class="product-cart-wrap small hover-up">
-                                                <div class="product-img-action-wrap">
-                                                    <div class="product-img product-img-zoom">
-                                                        <a href="shop-product-right.html" tabindex="0">
-                                                            <img class="default-img" src="/userAssets/imgs/shop/product-3-1.jpg" alt="">
-                                                            <img class="hover-img" src="/userAssets/imgs/shop/product-4-2.jpg" alt="">
-                                                        </a>
-                                                    </div>
-                                                    <div class="product-action-1">
-                                                        <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-search"></i></a>
-
-                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                        <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                    </div>
-                                                    <div class="product-badges product-badges-position product-badges-mrg">
-                                                        <span class="sale">-12%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="product-content-wrap">
-                                                    <h2><a href="shop-product-right.html" tabindex="0">Smart Bluetooth Speaker</a></h2>
-                                                    <div class="rating-result" title="90%">
-                                                        <span>
-                                                        </span>
-                                                    </div>
-                                                    <div class="product-price">
-                                                        <span>$138.85 </span>
-                                                        <span class="old-price">$145.8</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                            <div class="product-cart-wrap small hover-up">
-                                                <div class="product-img-action-wrap">
-                                                    <div class="product-img product-img-zoom">
-                                                        <a href="shop-product-right.html" tabindex="0">
-                                                            <img class="default-img" src="/userAssets/imgs/shop/product-4-1.jpg" alt="">
-                                                            <img class="hover-img" src="/userAssets/imgs/shop/product-4-2.jpg" alt="">
-                                                        </a>
-                                                    </div>
-                                                    <div class="product-action-1">
-                                                        <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-search"></i></a>
-
-                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                        <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                    </div>
-                                                    <div class="product-badges product-badges-position product-badges-mrg">
-                                                        <span class="new">New</span>
-                                                    </div>
-                                                </div>
-                                                <div class="product-content-wrap">
-                                                    <h2><a href="shop-product-right.html" tabindex="0">HomeSpeak 12UEA Goole</a></h2>
-                                                    <div class="rating-result" title="90%">
-                                                        <span>
-                                                        </span>
-                                                    </div>
-                                                    <div class="product-price">
-                                                        <span>$738.85 </span>
-                                                        <span class="old-price">$1245.8</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                            <div class="product-cart-wrap small hover-up mb-0">
-                                                <div class="product-img-action-wrap">
-                                                    <div class="product-img product-img-zoom">
-                                                        <a href="shop-product-right.html" tabindex="0">
-                                                            <img class="default-img" src="/userAssets/imgs/shop/product-5-1.jpg" alt="">
-                                                            <img class="hover-img" src="/userAssets/imgs/shop/product-3-2.jpg" alt="">
-                                                        </a>
-                                                    </div>
-                                                    <div class="product-action-1">
-                                                        <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-search"></i></a>
-
-                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                        <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                    </div>
-                                                    <div class="product-badges product-badges-position product-badges-mrg">
-                                                        <span class="hot">Hot</span>
-                                                    </div>
-                                                </div>
-                                                <div class="product-content-wrap">
-                                                    <h2><a href="shop-product-right.html" tabindex="0">Dadua Camera 4K 2022EF</a></h2>
-                                                    <div class="rating-result" title="90%">
-                                                        <span>
-                                                        </span>
-                                                    </div>
-                                                    <div class="product-price">
-                                                        <span>$89.8 </span>
-                                                        <span class="old-price">$98.8</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                            <section class="banner-2 section-padding pb-0">
+                                <div class="container">
+                                    <div class="banner-img banner-big wow fadeIn animated f-none">
+                                        <img src="/userAssets/imgs/banner/ban1.jpg" alt="" style="height: 340px; width: 100%;">
+                                        <div class="banner-text d-md-block d-none">
+                                            <h4 class="mb-15 mt-40 text-brand">Perfumery</h4>
+                                            <h1 class="fw-600 mb-20">Elevate Your Presence <br>with Our Exquisite Fragrances.</h1>
+                                            <a href="/" class="btn">Explore <i class="fi-rs-arrow-right"></i></a>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
-                                <img class="border-radius-10" src="/userAssets/imgs/banner/banner-4.png" alt="">
-                                <div class="banner-text">
-                                    <h4 class="mb-15 mt-40">Repair Services</h4>
-                                    <h2 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h2>
-                                </div>
-                            </div>
-                        <!-- </div> -->
-                    <!-- </div> -->
+                            </section>
+                        
                 </div>
             </div>
         </section>
@@ -1356,8 +1277,10 @@
                 <div class="row">
                     <div class="col-lg-4 col-md-6">
                         <div class="widget-about font-md mb-md-5 mb-lg-0">
-                            <div class="logo logo-width-1 wow fadeIn animated">
-                                <a href="index.html"><img src="/userAssets/imgs/theme/logo.svg" alt="logo"></a>
+                            <div class="logo logo-width-1">
+                                <a href="/">
+                                    <img src="/userAssets/imgs/theme/Brand.jpg" alt="logo" style="width: 250px; height: auto;">
+                                </a>
                             </div>
                             <h5 class="mt-20 mb-10 fw-600 text-grey-4 wow fadeIn animated">Contact</h5>
                             <p class="wow fadeIn animated">
