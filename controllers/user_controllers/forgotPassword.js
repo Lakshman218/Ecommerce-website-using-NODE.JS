@@ -2,10 +2,12 @@ const userCollection = require("../../models/user_schema");
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
+const bcrypt = require("bcrypt");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 const nodemailer = require('nodemailer');
 
+// render forgotpassword page
 module.exports.getforgotPassword = async(req,res) => {
   try {
     res.render("user-forgotpassword")
@@ -100,10 +102,12 @@ module.exports.changePassword = async(req,res) => {
   }
 }
 
+// saving changed password
 module.exports.saveChangePassword = async (req, res) => {
   try {
     const email = req.body.email;
     const password1 = req.body.password1;
+    console.log(password1);
     const password2 = req.body.password2;
 
     // Find the user by email
@@ -113,14 +117,16 @@ module.exports.saveChangePassword = async (req, res) => {
       const userId = userDataArray[0]._id;
 
       // Update the password
+      const hashedNewPassword = await bcrypt.hash(password1, 10);
+      console.log(hashedNewPassword);
       await userCollection.findByIdAndUpdate(
         userId,
-        { $set: { password: password1 } },
+        { $set: { password: hashedNewPassword } },
         { new: true }
       );
 
       console.log("Success");
-      res.render("user-login");
+      res.render("user-login")
     } else {
       console.log("User not found");
       res.render("user-forgotpassword");

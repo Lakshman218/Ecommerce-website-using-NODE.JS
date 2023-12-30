@@ -3,6 +3,7 @@ const adminCollection = require("../../models/admin_schema");
 const productCollection = require("../../models/product");
 const walletCollection = require("../../models/wallet");
 var randomstring = require("randomstring");
+const bcrypt = require("bcrypt");
 
 require('dotenv').config();
 const jwt = require("jsonwebtoken");
@@ -34,10 +35,11 @@ module.exports.postUserSignup = async (req,res) => {
     res.render("user-signup", { error: "PhoneNumber already exists" })
   } else {
     
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     await userCollection.create({
       username: req.body.username,
       email: req.body.email,
-      password: req.body.password, 
+      password: hashedPassword, 
       phoneNumber: req.body.phoneNumber,
       status:"Unblock",
       referelId: codeId,

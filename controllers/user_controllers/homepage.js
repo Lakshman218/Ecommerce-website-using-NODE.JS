@@ -14,6 +14,7 @@ require("dotenv").config();
 //  getting homepage 
 module.exports.getUserRoute = async (req, res) => {
   try {
+    
       const loggedIn = req.cookies.loggedIn;
       await offerController.deactivateExpiredOffers();
 

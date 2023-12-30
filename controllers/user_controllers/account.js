@@ -6,6 +6,7 @@ const orderCollection = require("../../models/order");
 const couponCollection = require("../../models/coupons")
 const nodemailer = require('nodemailer');
 const walletCollection = require("../../models/wallet");
+const bcrypt = require("bcrypt");
 
 
 // render account page
@@ -104,19 +105,19 @@ module.exports.postChangedswd = async (req, res) => {
     
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
-
-    if (oldpassword !== userData.password) {
+    const passwordMatch = await bcrypt.compare(oldpassword, userData.password);
+    if (!passwordMatch) {
       console.log("server");
       return res.status(200).json({ IncorrectOld: true });
     }
-
     if (oldpassword === newpassword) {
       return res.status(200).json({ samepassword: true });
     }
-
+    
+    const hashedNewPassword = await bcrypt.hash(newpassword, 10);
     await userCollection.findByIdAndUpdate(
       userId,
-      { $set: { password: newpassword } },
+      { $set: { password: hashedNewPassword } },
       { new: true }
     );
 
