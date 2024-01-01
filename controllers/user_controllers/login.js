@@ -3,22 +3,19 @@ const adminCollection = require("../../models/admin_schema");
 const productCollection = require("../../models/product");
 const bcrypt = require("bcrypt");
 
-require('dotenv').config();
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const secretkey = process.env.JWT_SECRET_KEY
-
+const secretkey = process.env.JWT_SECRET_KEY;
 
 // gettting login page
-module.exports.getLogin = (req,res) => {
+module.exports.getLogin = (req, res) => {
   const isLoggedIn = req.cookies.loggedIn;
-  if(isLoggedIn) {
+  if (isLoggedIn) {
     res.redirect("/");
-  } else { 
+  } else {
     res.render("user-login");
   }
-}
-
-
+};
 
 // checking user details and loging
 module.exports.postLogin = async (req, res) => {
@@ -57,8 +54,3 @@ module.exports.postLogin = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-  
-
-
-

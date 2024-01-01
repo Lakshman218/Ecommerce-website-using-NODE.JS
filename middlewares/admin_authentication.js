@@ -3,17 +3,17 @@ const jwt = require("jsonwebtoken");
 const cookieparser = require("cookie-parser");
 require("dotenv").config();
 
-module.exports.verifyadmin = (req,res,next) => {
+module.exports.verifyadmin = (req, res, next) => {
   const token = req.cookies.Admintoken;
   const verifyToken = jwt.verify(
-    token, 
+    token,
     process.env.JWT_SECRET_KEY,
     (err, decoded) => {
-      if(err) {
-        return res.redirect ("/admin");
+      if (err) {
+        return res.redirect("/admin");
       }
       req.user = decoded;
       next();
     }
-  )
+  );
 };

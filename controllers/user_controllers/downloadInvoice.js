@@ -3,8 +3,8 @@ const productCollection = require("../../models/product");
 const cartCollection = require("../../models/cart");
 const addressCollection = require("../../models/address");
 const orderCollection = require("../../models/order");
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
 // download invoice
 // module.exports.downloadInvoice = async (req, res) => {
@@ -85,22 +85,26 @@ const fs = require('fs');
 //   }
 // };
 
-module.exports.getInvoice = async (req,res) => {
+module.exports.getInvoice = async (req, res) => {
   try {
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
 
     const orderId = req.query.orderId;
     // const orderData = await orderCollection.findById(orderId);
-    const orderData = await orderCollection.findById({_id: orderId}).populate('products.productId');
-    const addressId = orderData.address
-    const addressData = addressId.address
+    const orderData = await orderCollection
+      .findById({ _id: orderId })
+      .populate("products.productId");
+    const addressId = orderData.address;
+    const addressData = addressId.address;
 
     const productIds = orderData.products;
-    const productsData = await productCollection.find({ _id: { $in: productIds } });
+    const productsData = await productCollection.find({
+      _id: { $in: productIds },
+    });
     // console.log(productsData);
-    res.render("user-invoice", {orderData, addressData, productsData})
-  } catch(error) {
-    console.error("Error:", error)
+    res.render("user-invoice", { orderData, addressData, productsData });
+  } catch (error) {
+    console.error("Error:", error);
   }
-}
+};

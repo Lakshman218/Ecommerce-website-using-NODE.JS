@@ -1,28 +1,34 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 const orderCollection = require("../../models/order");
 const userCollection = require("../../models/user_schema");
 const productCollection = require("../../models/product");
 
 // render order manage page
-module.exports.getOrderlist = async(req,res) => {
-  try{
-    const orderDetails = await orderCollection.find().populate('products.productId').populate('userId');
-    res.render("admin-orderlist",{ orderDetails})
+module.exports.getOrderlist = async (req, res) => {
+  try {
+    const orderDetails = await orderCollection
+      .find()
+      .populate("products.productId")
+      .populate("userId");
+    res.render("admin-orderlist", { orderDetails });
   } catch (error) {
-    console.error("Error:", error)
+    console.error("Error:", error);
   }
-}
+};
 
 // render order details page
-module.exports.getOrdermanage = async(req,res) => {
-  try{
-    const orderId = req.params.orderId
-    const orderDetails = await orderCollection.findById({_id: orderId}).populate('products.productId').populate('userId');;
-    res.render("admin-ordermanage",{ orderDetails })
-  }catch (error) {
-    console.error("Error:", error)
+module.exports.getOrdermanage = async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const orderDetails = await orderCollection
+      .findById({ _id: orderId })
+      .populate("products.productId")
+      .populate("userId");
+    res.render("admin-ordermanage", { orderDetails });
+  } catch (error) {
+    console.error("Error:", error);
   }
-}
+};
 
 // dispatch order
 module.exports.dispatchOrder = async (req, res) => {
@@ -31,7 +37,9 @@ module.exports.dispatchOrder = async (req, res) => {
     const orderData = await orderCollection.findById(orderId);
 
     if (orderData.orderStatus !== "Order Placed") {
-      return res.status(400).json({ error: "Order has already been shipped or cancelled" });
+      return res
+        .status(400)
+        .json({ error: "Order has already been shipped or cancelled" });
     }
 
     // Update the status of each product in the order
@@ -58,10 +66,10 @@ module.exports.dispatchOrder = async (req, res) => {
 };
 
 // deliver order
-module.exports.deliverOrder = async(req,res) => {
-  try{
-    const orderId = req.query.orderId
-    const orderData = await orderCollection.findById(orderId)
+module.exports.deliverOrder = async (req, res) => {
+  try {
+    const orderId = req.query.orderId;
+    const orderData = await orderCollection.findById(orderId);
 
     // Update the status of each product in the order
     for (const product of orderData.products) {
@@ -78,27 +86,29 @@ module.exports.deliverOrder = async(req,res) => {
     orderData.orderStatus = "Delivered";
     orderData.paymentStatus = "Success";
     orderData.deliveryDate = Date.now();
-   
+
     const expiryDate = new Date(orderData.deliveryDate);
     expiryDate.setDate(expiryDate.getDate() + 2);
 
-    orderData.expiryDate = expiryDate; 
+    orderData.expiryDate = expiryDate;
 
     await orderData.save();
 
-    res.status(200).json({message: "The order is delivered"})
-  }catch(error){
-    console.error("Error:", error)
+    res.status(200).json({ message: "The order is delivered" });
+  } catch (error) {
+    console.error("Error:", error);
   }
-}
+};
 
 // cancel order
-module.exports.cancelOrder = async(req,res) => {
-  try{
+module.exports.cancelOrder = async (req, res) => {
+  try {
     const orderId = req.query.orderId;
     const orderData = await orderCollection.findById(orderId);
     const productIds = orderData.products.map((product) => product.productId);
-    const productData = await productCollection.find({_id: { $in: productIds }});
+    const productData = await productCollection.find({
+      _id: { $in: productIds },
+    });
 
     const totalProductAmount = orderData.products
       .filter((product) => product.status !== "Cancelled")
@@ -124,38 +134,40 @@ module.exports.cancelOrder = async(req,res) => {
     await orderData.save();
 
     // updating payment
-    if(orderData.paymentMethod == 'Online payment' || orderData.paymentMethod  == 'Wallet') {
-      const userWallet = await walletCollection.findOne({userId: userId})
+    if (
+      orderData.paymentMethod == "Online payment" ||
+      orderData.paymentMethod == "Wallet"
+    ) {
+      const userWallet = await walletCollection.findOne({ userId: userId });
       const walletAmout = userWallet.amount ?? 0;
       const totalOrderAmount = totalProductAmount ?? 0;
       const newWalletAmount = walletAmout + totalOrderAmount;
 
-      if(orderData.paymentStatus == "Success"){
+      if (orderData.paymentStatus == "Success") {
         await walletCollection.updateOne(
-          {userId: userId},
-          {$set: {amount: newWalletAmount},
-        },);
+          { userId: userId },
+          { $set: { amount: newWalletAmount } }
+        );
       }
-    } else if (orderData.paymentMethod == 'Cash On Delivery') {
-      if(orderData.orderStatus == 'Delivered'){
-        const userWallet = await walletCollection.findOne({userId: userId})
+    } else if (orderData.paymentMethod == "Cash On Delivery") {
+      if (orderData.orderStatus == "Delivered") {
+        const userWallet = await walletCollection.findOne({ userId: userId });
         const walletAmout = userWallet.amount ?? 0;
         const totalOrderAmount = totalProductAmount ?? 0;
         const newWalletAmount = walletAmout + totalOrderAmount;
 
-        if(orderData.paymentStatus == "Success"){
+        if (orderData.paymentStatus == "Success") {
           await walletCollection.updateOne(
-            {userId: userId},
-            {$set: {amount: newWalletAmount},
-          },);
+            { userId: userId },
+            { $set: { amount: newWalletAmount } }
+          );
         }
       }
     }
 
-    res.status(200).json({message: "The order is cancelled"})
-    
-  } catch(error){
-    console.error("Error:", error)
-    res.status(500).json({error: "Error found while cancelling product"});
+    res.status(200).json({ message: "The order is cancelled" });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error found while cancelling product" });
   }
-}
+};

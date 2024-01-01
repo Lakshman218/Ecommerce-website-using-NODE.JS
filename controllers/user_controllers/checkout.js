@@ -5,52 +5,60 @@ const addressCollection = require("../../models/address");
 const orderCollection = require("../../models/order");
 const couponCollection = require("../../models/coupons");
 const { subtotal } = require("./cartdetails");
-const offerController = require("../admin_controllers/adm_offermanage")
+const offerController = require("../admin_controllers/adm_offermanage");
 
-const Razorpay = require('razorpay'); 
+const Razorpay = require("razorpay");
 const walletCollection = require("../../models/wallet");
 const { RAZORPAY_ID_KEY, RAZORPAY_SECRET_KEY } = process.env;
 
-const instance  = new Razorpay({
+const instance = new Razorpay({
   key_id: RAZORPAY_ID_KEY,
   key_secret: RAZORPAY_SECRET_KEY,
 });
-
-
 
 // render checkout
 module.exports.getCheckout = async (req, res) => {
   try {
     await offerController.deactivateExpiredOffers();
     const loggedIn = req.cookies.loggedIn;
-    const userData = await userCollection.findOne({email: req.user})
+    const userData = await userCollection.findOne({ email: req.user });
     const username = userData.username;
 
     const userId = userData._id;
-    const cartDetails = await cartCollection.findOne({ userId: userId }).populate("products.productId");
-    const addressDetails = await addressCollection.findOne({userId: userId})
+    const cartDetails = await cartCollection
+      .findOne({ userId: userId })
+      .populate("products.productId");
+    const addressDetails = await addressCollection.findOne({ userId: userId });
 
-    const coupondata = await couponCollection.find()
-    const coupons = coupondata.filter(coupons => coupons.status !== 'Block');
+    const coupondata = await couponCollection.find();
+    const coupons = coupondata.filter((coupons) => coupons.status !== "Block");
 
     if (!cartDetails || cartDetails.products.length === 0) {
-      return res.redirect('/');
+      return res.redirect("/");
     }
 
-    const stockCheck = cartDetails.products.every(productItem => {
+    const stockCheck = cartDetails.products.every((productItem) => {
       return productItem.productId.productStock >= productItem.quantity;
     });
 
-    const statusCheck = cartDetails.products.every(productItem => {
-      return productItem.productId.productStatus !== 'Block';
+    const statusCheck = cartDetails.products.every((productItem) => {
+      return productItem.productId.productStatus !== "Block";
     });
 
     if (!stockCheck || !statusCheck) {
       // Redirect to cart if productStock is insufficient
-      return res.redirect('/cart');
+      return res.redirect("/cart");
     }
 
-    res.render("user-checkout", { loggedIn, username, cartDetails, subtotal, addressDetails, userId, coupons });
+    res.render("user-checkout", {
+      loggedIn,
+      username,
+      cartDetails,
+      subtotal,
+      addressDetails,
+      userId,
+      coupons,
+    });
   } catch (error) {
     console.error(error);
   }
@@ -64,7 +72,9 @@ module.exports.grandtotal = async (req, res) => {
     const cartDetails = await cartCollection
       .findOne({ userId: userId })
       .populate("products.productId");
-    const productOffers = await productCollection.find({ discountStatus: "Active" });
+    const productOffers = await productCollection.find({
+      discountStatus: "Active",
+    });
 
     let subtotal = 0;
 
@@ -73,10 +83,15 @@ module.exports.grandtotal = async (req, res) => {
       subtotal += product.sellingPrice * productItem.quantity;
 
       // Check if the product has a discount offer
-      const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
+      const matchingOffer = productOffers.find(
+        (offer) => offer.productName === product.productName
+      );
 
       if (matchingOffer) {
-        const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
+        const discountedAmount =
+          (productItem.quantity *
+            (product.sellingPrice * matchingOffer.discountPercent)) /
+          100;
 
         // Ensure that discountedAmount is a valid number
         if (!isNaN(discountedAmount)) {
@@ -93,92 +108,119 @@ module.exports.grandtotal = async (req, res) => {
   }
 };
 
-
-
-
 // cash on delivery
 module.exports.cashOnDelivery = async (req, res) => {
   try {
     await offerController.deactivateExpiredOffers();
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
-    const cartDetails = await cartCollection.findOne({ userId: userId }).populate('products.productId');
-    
+    const cartDetails = await cartCollection
+      .findOne({ userId: userId })
+      .populate("products.productId");
+
     const couponCode = req.body.couponCode;
     const addressId = req.body.selectedAddresses;
-    const address = await addressCollection.findOne({ userId: userId, 'address._id': addressId }, { 'address.$': 1 });
-    const productOffers = await productCollection.find({ discountStatus: "Active" });
-    
+    const address = await addressCollection.findOne(
+      { userId: userId, "address._id": addressId },
+      { "address.$": 1 }
+    );
+    const productOffers = await productCollection.find({
+      discountStatus: "Active",
+    });
+
     // Check if productStock is sufficient for each product in the cart
-    const stockCheck = cartDetails.products.every(productItem => {
+    const stockCheck = cartDetails.products.every((productItem) => {
       return productItem.productId.productStock >= productItem.quantity;
     });
 
-    const statusCheck = cartDetails.products.every(productItem => {
-      return productItem.productId.productStatus !== 'Block';
+    const statusCheck = cartDetails.products.every((productItem) => {
+      return productItem.productId.productStatus !== "Block";
     });
 
-    if (!stockCheck || !statusCheck) {  
-      return res.redirect('/cart');
+    if (!stockCheck || !statusCheck) {
+      return res.redirect("/cart");
     }
 
     let totalAmount = 0;
-    let divideAmount = 0
-    let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-      let product = await productCollection.findById(productItem.productId);
-      totalAmount += product.sellingPrice * productItem.quantity;
-      divideAmount += product.sellingPrice * productItem.quantity;
+    let divideAmount = 0;
+    let orderProducts = await Promise.all(
+      cartDetails.products.map(async (productItem) => {
+        let product = await productCollection.findById(productItem.productId);
+        totalAmount += product.sellingPrice * productItem.quantity;
+        divideAmount += product.sellingPrice * productItem.quantity;
 
-      return {
-        productId: productItem.productId,
-        price: product.sellingPrice,
-        quantity: productItem.quantity,
-      };
-    }));
+        return {
+          productId: productItem.productId,
+          price: product.sellingPrice,
+          quantity: productItem.quantity,
+        };
+      })
+    );
 
     if (couponCode) {
-      const usedCoupon = await couponCollection.findOne({ couponCode: couponCode });
-      
+      const usedCoupon = await couponCollection.findOne({
+        couponCode: couponCode,
+      });
+
       if (usedCoupon) {
-        
         const minAmount = usedCoupon.minimumPurchase;
         const currentDate = new Date();
         console.log("inside checking", couponCode);
         if (usedCoupon.redeemedUser.includes(userId)) {
-          res.status(200).json({ alreadyRedeemed: true, message: "Coupon already redeemed by the user" });
-        } 
-        else if (usedCoupon.minimumPurchase > totalAmount) {
-          res.status(200).json({ minimumAmount: true, message: "Unable use coupon the order price decreased to "+ totalAmount });
-        } 
-        else if (usedCoupon.status === 'Block') {
+          res
+            .status(200)
+            .json({
+              alreadyRedeemed: true,
+              message: "Coupon already redeemed by the user",
+            });
+        } else if (usedCoupon.minimumPurchase > totalAmount) {
+          res
+            .status(200)
+            .json({
+              minimumAmount: true,
+              message:
+                "Unable use coupon the order price decreased to " + totalAmount,
+            });
+        } else if (usedCoupon.status === "Block") {
           res.status(200).json({ blocked: true, message: "Coupon is blocked" });
         } else if (
-          usedCoupon.expiryDate && usedCoupon.expiryDate.getTime() < currentDate.getTime()
+          usedCoupon.expiryDate &&
+          usedCoupon.expiryDate.getTime() < currentDate.getTime()
         ) {
           res.status(200).send({ expired: true, message: "Coupon is expired" });
         } else {
-
-          const paymentMethod = 'Cash On Delivery';
+          const paymentMethod = "Cash On Delivery";
 
           const couponAmount = parseFloat(usedCoupon.discountAmount);
           totalAmount = Math.max(totalAmount - couponAmount, 0);
           console.log("total amount", totalAmount);
 
-          let divideAmount = 0; 
+          let divideAmount = 0;
           let orderProducts = [];
 
           for (const productItem of cartDetails.products) {
-            const product = await productCollection.findById(productItem.productId);
+            const product = await productCollection.findById(
+              productItem.productId
+            );
             let productTotalPrice = product.sellingPrice * productItem.quantity;
 
             // Check if the product has a discount offer
-            const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
+            const matchingOffer = productOffers.find(
+              (offer) => offer.productName === product.productName
+            );
 
             if (matchingOffer) {
-              const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
+              const discountedAmount =
+                (productItem.quantity *
+                  (product.sellingPrice * matchingOffer.discountPercent)) /
+                100;
 
               // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-              if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
+              if (
+                !isNaN(product.sellingPrice) &&
+                !isNaN(matchingOffer.discountPercent) &&
+                !isNaN(discountedAmount)
+              ) {
                 productTotalPrice -= discountedAmount;
                 totalAmount -= discountedAmount;
                 console.log("discountedAmount is", discountedAmount);
@@ -196,7 +238,9 @@ module.exports.cashOnDelivery = async (req, res) => {
               productId: productItem.productId,
               price: product.sellingPrice,
               quantity: productItem.quantity,
-              orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
+              orderPrice: isNaN(productTotalPrice)
+                ? "0.00"
+                : productTotalPrice.toFixed(2),
             });
           }
 
@@ -204,9 +248,12 @@ module.exports.cashOnDelivery = async (req, res) => {
           const splitedCouponAmount = couponAmount / divideAmount;
 
           // Apply the split coupon amount to each product
-          orderProducts = orderProducts.map(product => {
-            const splitedDiscount = splitedCouponAmount * product.price * product.quantity;
-            product.orderPrice = (parseFloat(product.orderPrice) - splitedDiscount).toFixed(2);
+          orderProducts = orderProducts.map((product) => {
+            const splitedDiscount =
+              splitedCouponAmount * product.price * product.quantity;
+            product.orderPrice = (
+              parseFloat(product.orderPrice) - splitedDiscount
+            ).toFixed(2);
             return product;
           });
 
@@ -225,7 +272,7 @@ module.exports.cashOnDelivery = async (req, res) => {
           await cartCollection.findOneAndDelete({ userId: userId });
           // res.status(200).json({ message: "order placed" });
 
-          usedCoupon.redeemedUser.push(userId)
+          usedCoupon.redeemedUser.push(userId);
           await usedCoupon.save();
 
           res.status(200).json({
@@ -234,44 +281,55 @@ module.exports.cashOnDelivery = async (req, res) => {
             couponAmount: couponAmount,
             totalAmount: totalAmount.toFixed(2),
           });
-
         }
       } else {
         res.status(404).send({ message: "Coupon not found" });
       }
-    } else{
+    } else {
+      const paymentMethod = "Cash On Delivery";
 
-      const paymentMethod = 'Cash On Delivery';
+      let orderProducts = await Promise.all(
+        cartDetails.products.map(async (productItem) => {
+          let product = await productCollection.findById(productItem.productId);
+          let productTotalPrice = product.sellingPrice * productItem.quantity;
 
-      let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-        let product = await productCollection.findById(productItem.productId);
-        let productTotalPrice = product.sellingPrice * productItem.quantity;
-      
-        // Check if the product has a discount offer
-        const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
-      
-        if (matchingOffer) {
-          const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
-      
-          // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-          if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
-            productTotalPrice -= discountedAmount;
-            totalAmount -= discountedAmount;
-            console.log("discountedAmount is", discountedAmount);
+          // Check if the product has a discount offer
+          const matchingOffer = productOffers.find(
+            (offer) => offer.productName === product.productName
+          );
+
+          if (matchingOffer) {
+            const discountedAmount =
+              (productItem.quantity *
+                (product.sellingPrice * matchingOffer.discountPercent)) /
+              100;
+
+            // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
+            if (
+              !isNaN(product.sellingPrice) &&
+              !isNaN(matchingOffer.discountPercent) &&
+              !isNaN(discountedAmount)
+            ) {
+              productTotalPrice -= discountedAmount;
+              totalAmount -= discountedAmount;
+              console.log("discountedAmount is", discountedAmount);
+            }
           }
-        }
-      
-        // Update productStock
-        product.productStock -= productItem.quantity;
-        await product.save();
-      
-        return {
-          productId: productItem.productId,
-          price: product.sellingPrice,
-          quantity: productItem.quantity,
-          orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-        };
-      }));
+
+          // Update productStock
+          product.productStock -= productItem.quantity;
+          await product.save();
+
+          return {
+            productId: productItem.productId,
+            price: product.sellingPrice,
+            quantity: productItem.quantity,
+            orderPrice: isNaN(productTotalPrice)
+              ? "0.00"
+              : productTotalPrice.toFixed(2),
+          };
+        })
+      );
 
       const userOrder = await orderCollection.create({
         userId,
@@ -285,121 +343,154 @@ module.exports.cashOnDelivery = async (req, res) => {
 
       // Delete products from cart
       await cartCollection.findOneAndDelete({ userId: userId });
-      res.status(200).json({applied: true, message: "order placed" });
+      res.status(200).json({ applied: true, message: "order placed" });
     }
-
   } catch (error) {
-    console.log('Error:', error);
-    res.status(500).render('error');
+    console.log("Error:", error);
+    res.status(500).render("error");
   }
 };
 
-
 // razorpay order
-module.exports.razorpayOrder = async(req,res) => {
-  try{
+module.exports.razorpayOrder = async (req, res) => {
+  try {
     await offerController.deactivateExpiredOffers();
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
     const couponCode = req.body.couponCode;
     const addressId = req.body.selectedAddresses;
-    console.log("coupon cd",couponCode);
-    const address = await addressCollection.findOne({ userId: userId, 'address._id': addressId }, { 'address.$': 1 });
-    const cartDetails = await cartCollection.findOne({ userId: userId }).populate('products.productId');
-    const productOffers = await productCollection.find({ discountStatus: "Active" });
-    
+    console.log("coupon cd", couponCode);
+    const address = await addressCollection.findOne(
+      { userId: userId, "address._id": addressId },
+      { "address.$": 1 }
+    );
+    const cartDetails = await cartCollection
+      .findOne({ userId: userId })
+      .populate("products.productId");
+    const productOffers = await productCollection.find({
+      discountStatus: "Active",
+    });
+
     // Check if productStock is sufficient for each product in the cart
-    const stockCheck = cartDetails.products.every(productItem => {
+    const stockCheck = cartDetails.products.every((productItem) => {
       return productItem.productId.productStock >= productItem.quantity;
     });
 
-    const statusCheck = cartDetails.products.every(productItem => {
-      return productItem.productId.productStatus !== 'Block';
+    const statusCheck = cartDetails.products.every((productItem) => {
+      return productItem.productId.productStatus !== "Block";
     });
 
     if (!stockCheck || !statusCheck) {
-      return res.redirect('/cart');
+      return res.redirect("/cart");
     }
     // finding amount
     let totalAmount = 0;
-    
-    let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-      let product = await productCollection.findById(productItem.productId);
-      totalAmount += product.sellingPrice * productItem.quantity;
 
-      return {
-        productId: productItem.productId,
-        price: product.sellingPrice,
-        quantity: productItem.quantity,
-      };
-    }));
+    let orderProducts = await Promise.all(
+      cartDetails.products.map(async (productItem) => {
+        let product = await productCollection.findById(productItem.productId);
+        totalAmount += product.sellingPrice * productItem.quantity;
+
+        return {
+          productId: productItem.productId,
+          price: product.sellingPrice,
+          quantity: productItem.quantity,
+        };
+      })
+    );
 
     if (couponCode) {
-      const usedCoupon = await couponCollection.findOne({ couponCode: couponCode });
-      
+      const usedCoupon = await couponCollection.findOne({
+        couponCode: couponCode,
+      });
+
       if (usedCoupon) {
-        
         const minAmount = usedCoupon.minimumPurchase;
         const currentDate = new Date();
         console.log("inside checking", couponCode);
         if (usedCoupon.redeemedUser.includes(userId)) {
-          res.status(200).json({ alreadyRedeemed: true, message: "Coupon already redeemed by the user" });
-        } 
-        else if (usedCoupon.minimumPurchase > totalAmount) {
-          res.status(200).json({ minimumAmount: true, message: "Unable use coupon the order price decreased to "+ totalAmount });
-        } 
-        else if (usedCoupon.status === 'Block') {
+          res
+            .status(200)
+            .json({
+              alreadyRedeemed: true,
+              message: "Coupon already redeemed by the user",
+            });
+        } else if (usedCoupon.minimumPurchase > totalAmount) {
+          res
+            .status(200)
+            .json({
+              minimumAmount: true,
+              message:
+                "Unable use coupon the order price decreased to " + totalAmount,
+            });
+        } else if (usedCoupon.status === "Block") {
           res.status(200).json({ blocked: true, message: "Coupon is blocked" });
         } else if (
-          usedCoupon.expiryDate && usedCoupon.expiryDate.getTime() < currentDate.getTime()
+          usedCoupon.expiryDate &&
+          usedCoupon.expiryDate.getTime() < currentDate.getTime()
         ) {
           res.status(200).send({ expired: true, message: "Coupon is expired" });
         } else {
-          
-
           const couponAmount = parseFloat(usedCoupon.discountAmount);
           totalAmount = Math.max(totalAmount - couponAmount, 0);
-          console.log("total amount",totalAmount);
+          console.log("total amount", totalAmount);
 
-          let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-            let product = await productCollection.findById(productItem.productId);
-            let productTotalPrice = product.sellingPrice * productItem.quantity;
-          
-            // Check if the product has a discount offer
-            const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
-          
-            if (matchingOffer) {
-              const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
-          
-              // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-              if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
-                productTotalPrice -= discountedAmount;
-                totalAmount -= discountedAmount;
-                console.log("discountedAmount is", discountedAmount);
+          let orderProducts = await Promise.all(
+            cartDetails.products.map(async (productItem) => {
+              let product = await productCollection.findById(
+                productItem.productId
+              );
+              let productTotalPrice =
+                product.sellingPrice * productItem.quantity;
+
+              // Check if the product has a discount offer
+              const matchingOffer = productOffers.find(
+                (offer) => offer.productName === product.productName
+              );
+
+              if (matchingOffer) {
+                const discountedAmount =
+                  (productItem.quantity *
+                    (product.sellingPrice * matchingOffer.discountPercent)) /
+                  100;
+
+                // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
+                if (
+                  !isNaN(product.sellingPrice) &&
+                  !isNaN(matchingOffer.discountPercent) &&
+                  !isNaN(discountedAmount)
+                ) {
+                  productTotalPrice -= discountedAmount;
+                  totalAmount -= discountedAmount;
+                  console.log("discountedAmount is", discountedAmount);
+                }
               }
-            }
-          
-            return {
-              productId: productItem.productId,
-              price: product.sellingPrice,
-              quantity: productItem.quantity,
-              orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-            };
-          }));
 
+              return {
+                productId: productItem.productId,
+                price: product.sellingPrice,
+                quantity: productItem.quantity,
+                orderPrice: isNaN(productTotalPrice)
+                  ? "0.00"
+                  : productTotalPrice.toFixed(2),
+              };
+            })
+          );
 
           var options = {
             amount: totalAmount * 100,
             currency: "INR",
             receipt: "order_rcptid_11",
           };
-          
+
           console.log("Options:", options);
-          
-          instance.orders.create(options, function(err, order) {
+
+          instance.orders.create(options, function (err, order) {
             if (err) {
               console.error("Razorpay error:", err);
-              return res.status(500).json({ success: false, message: "Error creating order" });
+              return res
+                .status(500)
+                .json({ success: false, message: "Error creating order" });
             }
             console.log("Razorpay Order:", order);
             console.log("Total Amount:", totalAmount);
@@ -413,49 +504,60 @@ module.exports.razorpayOrder = async(req,res) => {
               couponCode: couponCode,
             });
           });
-          
         }
       } else {
         res.status(404).send({ message: "Coupon not found" });
       }
     } else {
+      let orderProducts = await Promise.all(
+        cartDetails.products.map(async (productItem) => {
+          let product = await productCollection.findById(productItem.productId);
+          let productTotalPrice = product.sellingPrice * productItem.quantity;
 
-      let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-        let product = await productCollection.findById(productItem.productId);
-        let productTotalPrice = product.sellingPrice * productItem.quantity;
-      
-        // Check if the product has a discount offer
-        const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
-      
-        if (matchingOffer) {
-          const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
-      
-          // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-          if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
-            productTotalPrice -= discountedAmount;
-            totalAmount -= discountedAmount;
-            console.log("discountedAmount is", discountedAmount);
+          // Check if the product has a discount offer
+          const matchingOffer = productOffers.find(
+            (offer) => offer.productName === product.productName
+          );
+
+          if (matchingOffer) {
+            const discountedAmount =
+              (productItem.quantity *
+                (product.sellingPrice * matchingOffer.discountPercent)) /
+              100;
+
+            // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
+            if (
+              !isNaN(product.sellingPrice) &&
+              !isNaN(matchingOffer.discountPercent) &&
+              !isNaN(discountedAmount)
+            ) {
+              productTotalPrice -= discountedAmount;
+              totalAmount -= discountedAmount;
+              console.log("discountedAmount is", discountedAmount);
+            }
           }
-        }
-      
-        return {
-          productId: productItem.productId,
-          price: product.sellingPrice,
-          quantity: productItem.quantity,
-          orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-        };
-      }));
+
+          return {
+            productId: productItem.productId,
+            price: product.sellingPrice,
+            quantity: productItem.quantity,
+            orderPrice: isNaN(productTotalPrice)
+              ? "0.00"
+              : productTotalPrice.toFixed(2),
+          };
+        })
+      );
 
       var options = {
-        amount: totalAmount * 100,  
+        amount: totalAmount * 100,
         currency: "INR",
-        receipt: "order_rcptid_11"
+        receipt: "order_rcptid_11",
       };
-      instance.orders.create(options, function(err, order) {
-        console.log("orders: ",order);
-        console.log("total amount ",totalAmount);
+      instance.orders.create(options, function (err, order) {
+        console.log("orders: ", order);
+        console.log("total amount ", totalAmount);
         res.status(200).json({
-          success: true, 
+          success: true,
           message: "order placed",
           totalAmount: totalAmount.toFixed(2),
           addressId: addressId,
@@ -465,10 +567,10 @@ module.exports.razorpayOrder = async(req,res) => {
       });
     }
   } catch (error) {
-    console.log('Error:', error);
-    res.status(500).render('error');
+    console.log("Error:", error);
+    res.status(500).render("error");
   }
-}
+};
 
 module.exports.razorpayOrderPlaced = async (req, res) => {
   try {
@@ -481,29 +583,40 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
     const addressId = req.query.addressId;
     const couponCode = req.query.couponCode;
     console.log("couponCode in success", couponCode);
-    const address = await addressCollection.findOne({ userId: userId, 'address._id': addressId }, { 'address.$': 1 });
-    const cartDetails = await cartCollection.findOne({ userId: userId }).populate('products.productId');
-    const productOffers = await productCollection.find({ discountStatus: "Active" });
+    const address = await addressCollection.findOne(
+      { userId: userId, "address._id": addressId },
+      { "address.$": 1 }
+    );
+    const cartDetails = await cartCollection
+      .findOne({ userId: userId })
+      .populate("products.productId");
+    const productOffers = await productCollection.find({
+      discountStatus: "Active",
+    });
 
-    let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-      let product = await productCollection.findById(productItem.productId);
-      totalAmount += product.sellingPrice * productItem.quantity;
+    let orderProducts = await Promise.all(
+      cartDetails.products.map(async (productItem) => {
+        let product = await productCollection.findById(productItem.productId);
+        totalAmount += product.sellingPrice * productItem.quantity;
 
-      return {
-        productId: productItem.productId,
-        price: product.sellingPrice,
-        quantity: productItem.quantity,
-      };
-    }));
+        return {
+          productId: productItem.productId,
+          price: product.sellingPrice,
+          quantity: productItem.quantity,
+        };
+      })
+    );
 
     if (couponCode) {
       console.log("here");
-      const usedCoupon = await couponCollection.findOne({ couponCode: couponCode });
+      const usedCoupon = await couponCollection.findOne({
+        couponCode: couponCode,
+      });
       if (usedCoupon) {
         console.log("inside here");
 
-        const paymentMethod = 'Online payment';
-        const paymentStatus = 'Success';
+        const paymentMethod = "Online payment";
+        const paymentStatus = "Success";
 
         const couponAmount = parseFloat(usedCoupon.discountAmount);
         console.log("couponAmount", couponAmount);
@@ -515,17 +628,28 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
 
         // Calculate the total amount of products
         for (const productItem of cartDetails.products) {
-          const product = await productCollection.findById(productItem.productId);
+          const product = await productCollection.findById(
+            productItem.productId
+          );
           let productTotalPrice = product.sellingPrice * productItem.quantity;
 
           // Check if the product has a discount offer
-          const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
+          const matchingOffer = productOffers.find(
+            (offer) => offer.productName === product.productName
+          );
 
           if (matchingOffer) {
-            const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
+            const discountedAmount =
+              (productItem.quantity *
+                (product.sellingPrice * matchingOffer.discountPercent)) /
+              100;
 
             // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-            if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
+            if (
+              !isNaN(product.sellingPrice) &&
+              !isNaN(matchingOffer.discountPercent) &&
+              !isNaN(discountedAmount)
+            ) {
               productTotalPrice -= discountedAmount;
               totalAmount -= discountedAmount;
               console.log("discountedAmount is", discountedAmount);
@@ -542,7 +666,9 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
             productId: productItem.productId,
             price: product.sellingPrice,
             quantity: productItem.quantity,
-            orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
+            orderPrice: isNaN(productTotalPrice)
+              ? "0.00"
+              : productTotalPrice.toFixed(2),
           });
         }
 
@@ -550,9 +676,12 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
         const splitedCouponAmount = couponAmount / divideAmount;
 
         // Apply the split coupon amount to each product
-        orderProducts = orderProducts.map(product => {
-          const splitedDiscount = splitedCouponAmount * product.price * product.quantity;
-          product.orderPrice = (parseFloat(product.orderPrice) - splitedDiscount).toFixed(2);
+        orderProducts = orderProducts.map((product) => {
+          const splitedDiscount =
+            splitedCouponAmount * product.price * product.quantity;
+          product.orderPrice = (
+            parseFloat(product.orderPrice) - splitedDiscount
+          ).toFixed(2);
           return product;
         });
 
@@ -571,7 +700,7 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
         // Delete products from cart
         await cartCollection.findOneAndDelete({ userId: userId });
 
-        usedCoupon.redeemedUser.push(userId)
+        usedCoupon.redeemedUser.push(userId);
         await usedCoupon.save();
 
         return res.render("user-orderplaced", { loggedIn, username });
@@ -579,38 +708,51 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
     } else {
       console.log("paying without coupon");
 
-      const paymentMethod = 'Online payment';
-      const paymentStatus = 'Success';
+      const paymentMethod = "Online payment";
+      const paymentStatus = "Success";
 
-      let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-        let product = await productCollection.findById(productItem.productId);
-        let productTotalPrice = product.sellingPrice * productItem.quantity;
-        totalAmount += product.sellingPrice * productItem.quantity;
+      let orderProducts = await Promise.all(
+        cartDetails.products.map(async (productItem) => {
+          let product = await productCollection.findById(productItem.productId);
+          let productTotalPrice = product.sellingPrice * productItem.quantity;
+          totalAmount += product.sellingPrice * productItem.quantity;
 
-        // Check if the product has a discount offer
-        const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
+          // Check if the product has a discount offer
+          const matchingOffer = productOffers.find(
+            (offer) => offer.productName === product.productName
+          );
 
-        if (matchingOffer) {
-          const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
+          if (matchingOffer) {
+            const discountedAmount =
+              (productItem.quantity *
+                (product.sellingPrice * matchingOffer.discountPercent)) /
+              100;
 
-          // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-          if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
-            productTotalPrice -= discountedAmount;
-            console.log("discountedAmount is", discountedAmount);
+            // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
+            if (
+              !isNaN(product.sellingPrice) &&
+              !isNaN(matchingOffer.discountPercent) &&
+              !isNaN(discountedAmount)
+            ) {
+              productTotalPrice -= discountedAmount;
+              console.log("discountedAmount is", discountedAmount);
+            }
           }
-        }
 
-        // Update productStock
-        product.productStock -= productItem.quantity;
-        await product.save();
+          // Update productStock
+          product.productStock -= productItem.quantity;
+          await product.save();
 
-        return {
-          productId: productItem.productId,
-          price: product.sellingPrice,
-          quantity: productItem.quantity,
-          orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-        };
-      }));
+          return {
+            productId: productItem.productId,
+            price: product.sellingPrice,
+            quantity: productItem.quantity,
+            orderPrice: isNaN(productTotalPrice)
+              ? "0.00"
+              : productTotalPrice.toFixed(2),
+          };
+        })
+      );
 
       const userOrder = await orderCollection.create({
         userId,
@@ -628,134 +770,318 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
 
       return res.render("user-orderplaced", { loggedIn, username });
     }
-
   } catch (error) {
-    console.log('Error:', error);
-    return res.status(500).render('error');
+    console.log("Error:", error);
+    return res.status(500).render("error");
   }
 };
 
-
-
-
 // wallet pay
-module.exports.walletPay = async(req, res) => {
-  try{
+module.exports.walletPay = async (req, res) => {
+  try {
     await offerController.deactivateExpiredOffers();
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
-    console.log("userid",userId);
-    const cartDetails = await cartCollection.findOne({ userId: userId }).populate('products.productId');
+    console.log("userid", userId);
+    const cartDetails = await cartCollection
+      .findOne({ userId: userId })
+      .populate("products.productId");
 
-    const walletData = await walletCollection.findOne({userId: userId});
-    console.log("walletdata: ",walletData);
+    const walletData = await walletCollection.findOne({ userId: userId });
+    console.log("walletdata: ", walletData);
     const walletAmout = walletData.amount;
-    
+
     const couponCode = req.body.couponCode;
     const addressId = req.body.selectedAddresses;
-    const address = await addressCollection.findOne({ userId: userId, 'address._id': addressId }, { 'address.$': 1 });
+    const address = await addressCollection.findOne(
+      { userId: userId, "address._id": addressId },
+      { "address.$": 1 }
+    );
 
-    const productOffers = await productCollection.find({ discountStatus: "Active" });
+    const productOffers = await productCollection.find({
+      discountStatus: "Active",
+    });
 
-    console.log(couponCode,addressId);
-  
-    
+    console.log(couponCode, addressId);
+
     // Check if productStock is sufficient for each product in the cart
-    const stockCheck = cartDetails.products.every(productItem => {
+    const stockCheck = cartDetails.products.every((productItem) => {
       return productItem.productId.productStock >= productItem.quantity;
     });
 
-    const statusCheck = cartDetails.products.every(productItem => {
-      return productItem.productId.productStatus !== 'Block';
+    const statusCheck = cartDetails.products.every((productItem) => {
+      return productItem.productId.productStatus !== "Block";
     });
 
-    if (!stockCheck || !statusCheck) {  
-      return res.redirect('/cart');
+    if (!stockCheck || !statusCheck) {
+      return res.redirect("/cart");
     }
 
     let totalAmount = 0;
-    let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-      let product = await productCollection.findById(productItem.productId);
-      totalAmount += product.sellingPrice * productItem.quantity;
+    let orderProducts = await Promise.all(
+      cartDetails.products.map(async (productItem) => {
+        let product = await productCollection.findById(productItem.productId);
+        totalAmount += product.sellingPrice * productItem.quantity;
 
-      return {
-        productId: productItem.productId,
-        price: product.sellingPrice,
-        quantity: productItem.quantity,
-      };
-    }));
-    
+        return {
+          productId: productItem.productId,
+          price: product.sellingPrice,
+          quantity: productItem.quantity,
+        };
+      })
+    );
 
+    if (couponCode) {
+      const usedCoupon = await couponCollection.findOne({
+        couponCode: couponCode,
+      });
 
-  if (couponCode) {
-    const usedCoupon = await couponCollection.findOne({ couponCode: couponCode });
-    
-    if (usedCoupon) {
-      
-      const minAmount = usedCoupon.minimumPurchase;
-      const currentDate = new Date();
-      console.log("inside checking", couponCode);
-      if (usedCoupon.redeemedUser.includes(userId)) {
-        res.status(200).json({ alreadyRedeemed: true, message: "Coupon already redeemed by the user" });
-      } 
-      else if (usedCoupon.minimumPurchase > totalAmount) {
-        res.status(200).json({ minimumAmount: true, message: "Unable use coupon the order price decreased to "+ totalAmount });
-      } 
-      else if (usedCoupon.status === 'Block') {
-        res.status(200).json({ blocked: true, message: "Coupon is blocked" });
-      } else if (
-        usedCoupon.expiryDate && usedCoupon.expiryDate.getTime() < currentDate.getTime()
-      ) {
-        res.status(200).send({ expired: true, message: "Coupon is expired" });
+      if (usedCoupon) {
+        const minAmount = usedCoupon.minimumPurchase;
+        const currentDate = new Date();
+        console.log("inside checking", couponCode);
+        if (usedCoupon.redeemedUser.includes(userId)) {
+          res
+            .status(200)
+            .json({
+              alreadyRedeemed: true,
+              message: "Coupon already redeemed by the user",
+            });
+        } else if (usedCoupon.minimumPurchase > totalAmount) {
+          res
+            .status(200)
+            .json({
+              minimumAmount: true,
+              message:
+                "Unable use coupon the order price decreased to " + totalAmount,
+            });
+        } else if (usedCoupon.status === "Block") {
+          res.status(200).json({ blocked: true, message: "Coupon is blocked" });
+        } else if (
+          usedCoupon.expiryDate &&
+          usedCoupon.expiryDate.getTime() < currentDate.getTime()
+        ) {
+          res.status(200).send({ expired: true, message: "Coupon is expired" });
+        } else {
+          const couponAmount = parseFloat(usedCoupon.discountAmount);
+          totalAmount = Math.max(totalAmount - couponAmount, 0);
+          console.log("total amount", totalAmount);
+
+          let orderProducts = await Promise.all(
+            cartDetails.products.map(async (productItem) => {
+              let product = await productCollection.findById(
+                productItem.productId
+              );
+              let productTotalPrice =
+                product.sellingPrice * productItem.quantity;
+
+              // Check if the product has a discount offer
+              const matchingOffer = productOffers.find(
+                (offer) => offer.productName === product.productName
+              );
+
+              if (matchingOffer) {
+                const discountedAmount =
+                  (productItem.quantity *
+                    (product.sellingPrice * matchingOffer.discountPercent)) /
+                  100;
+
+                // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
+                if (
+                  !isNaN(product.sellingPrice) &&
+                  !isNaN(matchingOffer.discountPercent) &&
+                  !isNaN(discountedAmount)
+                ) {
+                  productTotalPrice -= discountedAmount;
+                  totalAmount -= discountedAmount;
+                  console.log("discountedAmount is", discountedAmount);
+                }
+              }
+
+              return {
+                productId: productItem.productId,
+                price: product.sellingPrice,
+                quantity: productItem.quantity,
+                orderPrice: isNaN(productTotalPrice)
+                  ? "0.00"
+                  : productTotalPrice.toFixed(2),
+              };
+            })
+          );
+
+          if (totalAmount <= walletAmout) {
+            let divideAmount = 0;
+            let orderProducts = [];
+
+            for (const productItem of cartDetails.products) {
+              const product = await productCollection.findById(
+                productItem.productId
+              );
+              let productTotalPrice =
+                product.sellingPrice * productItem.quantity;
+
+              // Check if the product has a discount offer
+              const matchingOffer = productOffers.find(
+                (offer) => offer.productName === product.productName
+              );
+
+              if (matchingOffer) {
+                const discountedAmount =
+                  (productItem.quantity *
+                    (product.sellingPrice * matchingOffer.discountPercent)) /
+                  100;
+
+                // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
+                if (
+                  !isNaN(product.sellingPrice) &&
+                  !isNaN(matchingOffer.discountPercent) &&
+                  !isNaN(discountedAmount)
+                ) {
+                  productTotalPrice -= discountedAmount;
+                  console.log("discountedAmount is", discountedAmount);
+                }
+              }
+
+              // Update productStock
+              product.productStock -= productItem.quantity;
+              await product.save();
+
+              // Calculate the total amount of products
+              divideAmount += product.sellingPrice * productItem.quantity;
+
+              orderProducts.push({
+                productId: productItem.productId,
+                price: product.sellingPrice,
+                quantity: productItem.quantity,
+                orderPrice: isNaN(productTotalPrice)
+                  ? "0.00"
+                  : productTotalPrice.toFixed(2),
+              });
+            }
+
+            // Calculate the split coupon amount for each product
+            const splitedCouponAmount = couponAmount / divideAmount;
+
+            // Apply the split coupon amount to each product
+            orderProducts = orderProducts.map((product) => {
+              const splitedDiscount =
+                splitedCouponAmount * product.price * product.quantity;
+              product.orderPrice = (
+                parseFloat(product.orderPrice) - splitedDiscount
+              ).toFixed(2);
+              return product;
+            });
+
+            const paymentMethod = "Wallet";
+            const paymentStatus = "Success";
+
+            const userOrder = await orderCollection.create({
+              userId,
+              products: orderProducts,
+              orderDate: new Date(),
+              totalAmount,
+              payableAmount: totalAmount,
+              paymentMethod,
+              paymentStatus,
+              address,
+            });
+
+            // Delete products from cart
+            await cartCollection.findOneAndDelete({ userId: userId });
+            // res.status(200).json({ message: "order placed" });
+
+            usedCoupon.redeemedUser.push(userId);
+            await usedCoupon.save();
+
+            // Subtract totalAmount from the walletAmount
+            await walletCollection.findOneAndUpdate(
+              { userId },
+              { $inc: { amount: -totalAmount } }
+            );
+
+            res.status(200).json({
+              applied: true,
+              message: "Coupon applied successfully",
+              couponAmount: couponAmount,
+              totalAmount: totalAmount.toFixed(2),
+            });
+          } else {
+            res
+              .status(200)
+              .json({
+                excessAmount: true,
+                message: "you have only " + walletAmout + " in your wallet",
+              });
+          }
+        }
       } else {
-
-        const couponAmount = parseFloat(usedCoupon.discountAmount);
-        totalAmount = Math.max(totalAmount - couponAmount, 0);
-        console.log("total amount",totalAmount);
-
-        let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
+        res.status(404).send({ message: "Coupon not found" });
+      }
+    } else {
+      let orderProducts = await Promise.all(
+        cartDetails.products.map(async (productItem) => {
           let product = await productCollection.findById(productItem.productId);
           let productTotalPrice = product.sellingPrice * productItem.quantity;
-        
+
           // Check if the product has a discount offer
-          const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
-        
+          const matchingOffer = productOffers.find(
+            (offer) => offer.productName === product.productName
+          );
+
           if (matchingOffer) {
-            const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
-        
+            const discountedAmount =
+              (productItem.quantity *
+                (product.sellingPrice * matchingOffer.discountPercent)) /
+              100;
+
             // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-            if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
+            if (
+              !isNaN(product.sellingPrice) &&
+              !isNaN(matchingOffer.discountPercent) &&
+              !isNaN(discountedAmount)
+            ) {
               productTotalPrice -= discountedAmount;
               totalAmount -= discountedAmount;
               console.log("discountedAmount is", discountedAmount);
             }
           }
-        
+
           return {
             productId: productItem.productId,
             price: product.sellingPrice,
             quantity: productItem.quantity,
-            orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
+            orderPrice: isNaN(productTotalPrice)
+              ? "0.00"
+              : productTotalPrice.toFixed(2),
           };
-        }));
+        })
+      );
 
-        if(totalAmount <= walletAmout){
-
-          let divideAmount = 0; 
-          let orderProducts = [];
-
-          for (const productItem of cartDetails.products) {
-            const product = await productCollection.findById(productItem.productId);
+      if (totalAmount <= walletAmout) {
+        let orderProducts = await Promise.all(
+          cartDetails.products.map(async (productItem) => {
+            let product = await productCollection.findById(
+              productItem.productId
+            );
             let productTotalPrice = product.sellingPrice * productItem.quantity;
 
             // Check if the product has a discount offer
-            const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
+            const matchingOffer = productOffers.find(
+              (offer) => offer.productName === product.productName
+            );
 
             if (matchingOffer) {
-              const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
+              const discountedAmount =
+                (productItem.quantity *
+                  (product.sellingPrice * matchingOffer.discountPercent)) /
+                100;
 
               // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-              if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
+              if (
+                !isNaN(product.sellingPrice) &&
+                !isNaN(matchingOffer.discountPercent) &&
+                !isNaN(discountedAmount)
+              ) {
                 productTotalPrice -= discountedAmount;
                 console.log("discountedAmount is", discountedAmount);
               }
@@ -765,210 +1091,113 @@ module.exports.walletPay = async(req, res) => {
             product.productStock -= productItem.quantity;
             await product.save();
 
-            // Calculate the total amount of products
-            divideAmount += product.sellingPrice * productItem.quantity;
-
-            orderProducts.push({
+            return {
               productId: productItem.productId,
               price: product.sellingPrice,
               quantity: productItem.quantity,
-              orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-            });
-          }
+              orderPrice: isNaN(productTotalPrice)
+                ? "0.00"
+                : productTotalPrice.toFixed(2),
+            };
+          })
+        );
 
-          // Calculate the split coupon amount for each product
-          const splitedCouponAmount = couponAmount / divideAmount;
+        const paymentMethod = "Wallet";
+        const paymentStatus = "Success";
 
-          // Apply the split coupon amount to each product
-          orderProducts = orderProducts.map(product => {
-            const splitedDiscount = splitedCouponAmount * product.price * product.quantity;
-            product.orderPrice = (parseFloat(product.orderPrice) - splitedDiscount).toFixed(2);
-            return product;
+        const userOrder = await orderCollection.create({
+          userId,
+          products: orderProducts,
+          orderDate: new Date(),
+          totalAmount: totalAmount.toFixed(2),
+          payableAmount: totalAmount,
+          paymentMethod,
+          paymentStatus,
+          address,
+        });
+        // Delete products from cart
+        await cartCollection.findOneAndDelete({ userId: userId });
+
+        // Subtract totalAmount from the walletAmount
+        await walletCollection.findOneAndUpdate(
+          { userId },
+          { $inc: { amount: -totalAmount.toFixed(2) } }
+        );
+
+        res.status(200).json({ applied: true, message: "order placed" });
+      } else {
+        res
+          .status(200)
+          .json({
+            excessAmount: true,
+            message: "you have only " + walletAmout + " in your wallet",
           });
-          
-          const paymentMethod = 'Wallet';
-          const paymentStatus = 'Success';
-
-          const userOrder = await orderCollection.create({
-            userId,
-            products: orderProducts,
-            orderDate: new Date(),
-            totalAmount,
-            payableAmount: totalAmount,
-            paymentMethod,
-            paymentStatus,
-            address,
-          });
-
-
-          // Delete products from cart
-          await cartCollection.findOneAndDelete({ userId: userId });
-          // res.status(200).json({ message: "order placed" });
-
-          usedCoupon.redeemedUser.push(userId)
-          await usedCoupon.save();
-
-          // Subtract totalAmount from the walletAmount
-          await walletCollection.findOneAndUpdate(
-            { userId },
-            { $inc: { amount: -totalAmount } }
-          );
-
-          res.status(200).json({
-            applied: true,
-            message: "Coupon applied successfully",
-            couponAmount: couponAmount,
-            totalAmount: totalAmount.toFixed(2),
-          });
-        } else {
-          res.status(200).json({excessAmount: true, message: "you have only " + walletAmout + " in your wallet"})
-          }
-
       }
-    } else {
-      res.status(404).send({ message: "Coupon not found" });
     }
-  } else {
-
-    let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-      let product = await productCollection.findById(productItem.productId);
-      let productTotalPrice = product.sellingPrice * productItem.quantity;
-    
-      // Check if the product has a discount offer
-      const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
-    
-      if (matchingOffer) {
-        const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
-    
-        // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-        if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
-          productTotalPrice -= discountedAmount;
-          totalAmount -= discountedAmount;
-          console.log("discountedAmount is", discountedAmount);
-        }
-      }
-    
-      return {
-        productId: productItem.productId,
-        price: product.sellingPrice,
-        quantity: productItem.quantity,
-        orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-      };
-    }));
-
-    if(totalAmount <= walletAmout){
-
-      let orderProducts = await Promise.all(cartDetails.products.map(async (productItem) => {
-        let product = await productCollection.findById(productItem.productId);
-        let productTotalPrice = product.sellingPrice * productItem.quantity;
-      
-        // Check if the product has a discount offer
-        const matchingOffer = productOffers.find(offer => offer.productName === product.productName);
-      
-        if (matchingOffer) {
-          const discountedAmount = productItem.quantity * (product.sellingPrice * matchingOffer.discountPercent) / 100;
-      
-          // Ensure that both product.sellingPrice and matchingOffer.discountPercent are valid numbers
-          if (!isNaN(product.sellingPrice) && !isNaN(matchingOffer.discountPercent) && !isNaN(discountedAmount)) {
-            productTotalPrice -= discountedAmount;
-            console.log("discountedAmount is", discountedAmount);
-          }
-        }
-      
-        // Update productStock
-        product.productStock -= productItem.quantity;
-        await product.save();
-      
-        return {
-          productId: productItem.productId,
-          price: product.sellingPrice,
-          quantity: productItem.quantity,
-          orderPrice: isNaN(productTotalPrice) ? "0.00" : productTotalPrice.toFixed(2),
-        };
-      }));
-
-      const paymentMethod = 'Wallet';
-      const paymentStatus = 'Success'
-
-      const userOrder = await orderCollection.create({
-        userId,
-        products: orderProducts,
-        orderDate: new Date(),
-        totalAmount: totalAmount.toFixed(2),
-        payableAmount: totalAmount,
-        paymentMethod,
-        paymentStatus,
-        address,
-      });
-      // Delete products from cart
-      await cartCollection.findOneAndDelete({ userId: userId });
-
-      // Subtract totalAmount from the walletAmount
-      await walletCollection.findOneAndUpdate(
-        { userId },
-        { $inc: { amount: -totalAmount.toFixed(2) } }
-      );
-
-      res.status(200).json({applied: true, message: "order placed" });
-    } else {
-        res.status(200).json({excessAmount: true, message: "you have only " + walletAmout + " in your wallet"})
-      }
+  } catch (error) {
+    console.error("error: ", error);
   }
-
-  } catch(error){
-    console.error("error: ", error)
-  }
-}
+};
 
 // render place order page
-module.exports.getPlaceOrder = async(req,res) => {
-  try{
+module.exports.getPlaceOrder = async (req, res) => {
+  try {
     const loggedIn = req.cookies.loggedIn;
-    const userData = await userCollection.findOne({email: req.user})
+    const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
     const username = userData.username;
-    
-    res.render("user-orderplaced",{loggedIn,username})
-  } catch(error){
-    console.error("error: ", error)
+
+    res.render("user-orderplaced", { loggedIn, username });
+  } catch (error) {
+    console.error("error: ", error);
   }
-}
-
-
+};
 
 // apply coupon
-module.exports.applyCoupon = async(req,res) => {
-  try{
+module.exports.applyCoupon = async (req, res) => {
+  try {
     await offerController.deactivateExpiredOffers();
     const couponCode = req.body.couponCode;
     const totalAmount = req.body.subtotalData;
 
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
-    const usedCoupon = await couponCollection.findOne({couponCode: couponCode})
-    const minAmount = usedCoupon.minimumPurchase; 
+    const usedCoupon = await couponCollection.findOne({
+      couponCode: couponCode,
+    });
+    const minAmount = usedCoupon.minimumPurchase;
     const currentDate = new Date();
 
-    console.log(totalAmount,usedCoupon.discountAmount);
+    console.log(totalAmount, usedCoupon.discountAmount);
 
-    if(usedCoupon) {
+    if (usedCoupon) {
       if (usedCoupon.redeemedUser.includes(userId)) {
-        res.status(200).json({alreadyRedeemed: true, message: "Coupon already redeemed by the user"});
+        res
+          .status(200)
+          .json({
+            alreadyRedeemed: true,
+            message: "Coupon already redeemed by the user",
+          });
       } else if (usedCoupon.minimumPurchase > totalAmount) {
-        res.status(200).json({minimumAmount: true, message: "Minimum Purchase Amount " + minAmount + " required"}); 
-      } else if (usedCoupon.status === 'Block') {
-        res.status(200).json({blocked:true, message: "coupon is blocked"})
+        res
+          .status(200)
+          .json({
+            minimumAmount: true,
+            message: "Minimum Purchase Amount " + minAmount + " required",
+          });
+      } else if (usedCoupon.status === "Block") {
+        res.status(200).json({ blocked: true, message: "coupon is blocked" });
       } else if (
-        usedCoupon.expiryDate && usedCoupon.expiryDate.getTime() < currentDate.getTime() 
+        usedCoupon.expiryDate &&
+        usedCoupon.expiryDate.getTime() < currentDate.getTime()
       ) {
-        res.status(200).send({expired: true, message: "coupon is expired"})
-      } 
-      else {
+        res.status(200).send({ expired: true, message: "coupon is expired" });
+      } else {
         // usedCoupon.redeemedUser.push(userId)
         // await usedCoupon.save();
 
-        const couponAmount = parseFloat(usedCoupon.discountAmount)
-        const updatedTotal = Math.max(totalAmount - couponAmount)
+        const couponAmount = parseFloat(usedCoupon.discountAmount);
+        const updatedTotal = Math.max(totalAmount - couponAmount);
         console.log(updatedTotal);
 
         res.status(200).json({
@@ -982,37 +1211,32 @@ module.exports.applyCoupon = async(req,res) => {
     } else {
       res.status(404).send({ message: "Coupon not found" });
     }
-    
-  }catch(error){
+  } catch (error) {
     console.error("Error:", error);
     res.status(500).send({ error: "Internal Server Error" });
   }
-}
+};
 
 // remove coupon
-module.exports.removeCoupon = async(req,res) => {
+module.exports.removeCoupon = async (req, res) => {
   try {
     const couponCode = req.body.couponCode;
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
-    const usedCoupon = await couponCollection.findOne({couponCode: couponCode})
+    const usedCoupon = await couponCollection.findOne({
+      couponCode: couponCode,
+    });
 
-    if(usedCoupon){
+    if (usedCoupon) {
       const removecoupon = await couponCollection.updateOne(
-        {couponCode: couponCode},
-        {$pull: { redeemedUser: userId}}
+        { couponCode: couponCode },
+        { $pull: { redeemedUser: userId } }
       );
     }
     // res.redirect("/checkout");
-    res.status(200).json({message: "coupon removed succussfully"});
-  }catch(error){
+    res.status(200).json({ message: "coupon removed succussfully" });
+  } catch (error) {
     console.error("Error:", error);
     res.status(500).send({ error: "Internal Server Error" });
   }
-}
-
-
-
-
-
-
+};
