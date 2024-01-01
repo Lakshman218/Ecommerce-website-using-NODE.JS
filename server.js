@@ -6,6 +6,8 @@ const cookieparser = require("cookie-parser");
 const session = require("express-session");
 const nocache = require("nocache");
 const { v4: uuidv4 } = require("uuid"); 
+require('dotenv').config();
+const mongo_ID = process.env.MONGOID
 
 const adminRouter = require("./routes/adminRouter");
 const userRouter = require("./routes/userRouter");
@@ -34,7 +36,7 @@ app.use("/admin",adminRouter);
 
 
 const PORT = 3000;
-const MONGO = "mongodb://127.0.0.01:27017/firstproject";
+const MONGO = mongo_ID
 
 app.listen(PORT, async(req,res) => {
   try {
