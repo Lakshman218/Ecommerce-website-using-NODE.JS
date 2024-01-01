@@ -55,6 +55,16 @@ module.exports.getUserRoute = async (req, res) => {
   }
 };
 
+
+module.exports.getAbout = async(req,res) => {
+  try{
+    res.render("user-about")
+  } catch (error) {
+    console.error(error);
+}
+}
+
+
 // logout
 module.exports.getLogout = (req,res) => {
   res.clearCookie("token");

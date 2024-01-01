@@ -22,6 +22,7 @@ const forgotpasswordControll = require("../controllers/user_controllers/forgotPa
 // homepage 
 userRouter.get("/", homepageControll.getUserRoute);
 userRouter.get("/logout",homepageControll.getLogout);
+userRouter.get("/about", homepageControll.getAbout)
 
 // login
 userRouter.get("/login", loginControll.getLogin)
