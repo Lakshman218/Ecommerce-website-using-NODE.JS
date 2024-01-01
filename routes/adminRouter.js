@@ -83,6 +83,7 @@ adminRouter.get("/Unblock-offer/:offerId", adminMiddleware.verifyadmin, offerman
 // sales report
 adminRouter.get("/sales-report", adminMiddleware.verifyadmin, dashboardControll.salesReport )
 adminRouter.post("/filter-sales", adminMiddleware.verifyadmin, dashboardControll.filterSales )
+adminRouter.post("/filter-order", adminMiddleware.verifyadmin, dashboardControll.filterOrder)
 
 
 

@@ -87,12 +87,15 @@ module.exports.getAdminDashboard = async (req, res) => {
     const revenue = result.length > 0 ? result[0].totalRevenue : 0;
     const earnings = profit.length > 0 ? profit[0].totalEarnings : 0;
 
+    let filteredData = await orderCollection.find();
+
     res.render("admin-dashboard", {
       numberOfOrders,
       numberOfProducts,
       numberOfCategories,
       revenue,
       earnings,
+      filteredData,
     });
   } catch (error) {
     console.error(error);
