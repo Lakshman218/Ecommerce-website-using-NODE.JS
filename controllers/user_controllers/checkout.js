@@ -710,6 +710,7 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
 
       const paymentMethod = "Online payment";
       const paymentStatus = "Success";
+      totalAmount = 0;
 
       let orderProducts = await Promise.all(
         cartDetails.products.map(async (productItem) => {
@@ -734,6 +735,7 @@ module.exports.razorpayOrderPlaced = async (req, res) => {
               !isNaN(matchingOffer.discountPercent) &&
               !isNaN(discountedAmount)
             ) {
+              totalAmount -= discountedAmount
               productTotalPrice -= discountedAmount;
               console.log("discountedAmount is", discountedAmount);
             }
