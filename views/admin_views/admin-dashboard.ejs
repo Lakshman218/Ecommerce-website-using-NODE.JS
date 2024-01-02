@@ -442,7 +442,7 @@
                                             <i class=  font-xxl text-muted mr-5></i> <%= order.paymentMethod %>
                                         </td>
                                         <td>
-                                            <span class=" <%= order.paymentStatus === 'Success' ? 'badge-soft-success' : 'badge-soft-danger' %>"><%= order.paymentStatus %></span>
+                                            <span class="<%= order.paymentStatus === 'Success' ? 'badge-soft-success' : (order.paymentStatus === 'Pending' ? 'badge-soft-info' : 'badge-soft-danger') %>"><%= order.paymentStatus %></span>
                                         </td>
                                         <td>
                                             <%= order.totalAmount.toFixed(0) %>

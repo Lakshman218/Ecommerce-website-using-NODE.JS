@@ -198,13 +198,14 @@
                                   <td><%= coupon.minimumPurchase %></td>
                                   <td><%= coupon.expiryDate.toLocaleDateString() %></td>
                                   <td class="text-center">
-                                    <a class="btn btn-sm" href="/admin/edit-coupon/<%= coupon._id%>">Edit</a>
+                                    <a class="btn btn-sm" href="/admin/edit-coupon/<%= coupon._id %>">Edit</a>
+                                
                                     <% if(coupon.status === 'Unblock') {%> 
-                                      <a class="btn btn-md" href="/admin/block-coupon/<%= coupon._id %>">Block</a>
-                                      <%} else if (coupon.status === 'Block') {%>
-                                        <a class="btn btn-md" style="background-color: #b61300; color: #fff;" href="/admin/unblock-coupon/<%= coupon._id %>">Unblock</a>
-                                        <%} %>
-                                  </td>
+                                        <button class="btn btn-md" onclick="confirmBlock('<%= coupon._id %>')">Block</button>
+                                    <%} else if (coupon.status === 'Block') {%>
+                                        <button class="btn btn-md" style="background-color: #b61300; color: #fff;" onclick="confirmUnblock('<%= coupon._id %>')">Unblock</button>
+                                    <%} %>
+                                </td>
                               </tr>
                               <%}) %>
                           </tbody>
@@ -253,6 +254,40 @@
               });
           });
          </script>
+
+
+<script>
+    function confirmBlock(couponId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to block this coupon!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, block it!',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/block-coupon/${couponId}`;
+            }
+        });
+    }
+
+    function confirmUnblock(couponId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to unblock this coupon!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, unblock it!',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/admin/unblock-coupon/${couponId}`;
+            }
+        });
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="/adminAssets/js/vendors/jquery-3.6.0.min.js"></script>
     <script src="/adminAssets/js/vendors/bootstrap.bundle.min.js"></script>

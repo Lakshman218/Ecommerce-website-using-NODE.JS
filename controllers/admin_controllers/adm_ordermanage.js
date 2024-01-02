@@ -148,6 +148,10 @@ module.exports.cancelOrder = async (req, res) => {
           { userId: userId },
           { $set: { amount: newWalletAmount } }
         );
+        await orderCollection.updateOne(
+          { _id: orderId },
+          { $set: { paymentStatus: "Repayed" } }
+        );
       }
     } else if (orderData.paymentMethod == "Cash On Delivery") {
       if (orderData.orderStatus == "Delivered") {

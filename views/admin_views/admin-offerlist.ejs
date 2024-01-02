@@ -198,12 +198,13 @@
                                 <td class="text-center"><%= offer.startDate.toLocaleDateString() %></td>
                                 <td class="text-center"><%= offer.endDate.toLocaleDateString() %></td>
                                 <td class="text-center">
-                                  <a class="btn btn-sm" href="/admin/edit-offer/<%= offer._id %>">Edit</a>
-                                  <% if(offer.status === 'Unblock') {%> 
-                                    <a class="btn btn-md" href="/admin/block-offer/<%= offer._id %>">Block</a>
+                                    <a class="btn btn-sm" href="/admin/edit-offer/<%= offer._id %>">Edit</a>
+                                
+                                    <% if(offer.status === 'Unblock') {%> 
+                                        <button class="btn btn-md" onclick="confirmBlockOffer('<%= offer._id %>')">Block</button>
                                     <%} else if (offer.status === 'Block') {%>
-                                      <a class="btn btn-md" style="background-color: #b61300; color: #fff;" href="/admin/Unblock-offer/<%= offer._id %>">Unblock</a>
-                                      <%} %>
+                                        <button class="btn btn-md" style="background-color: #b61300; color: #fff;" onclick="confirmUnblockOffer('<%= offer._id %>')">Unblock</button>
+                                    <%} %>
                                 </td>
                             </tr>
                             <%}) %>
@@ -242,6 +243,39 @@
             </div>
         </footer>
     </main>
+
+    <script>
+        function confirmBlockOffer(offerId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You are about to block this offer!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, block it!',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/block-offer/${offerId}`;
+                }
+            });
+        }
+    
+        function confirmUnblockOffer(offerId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You are about to unblock this offer!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, unblock it!',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/unblock-offer/${offerId}`;
+                }
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>

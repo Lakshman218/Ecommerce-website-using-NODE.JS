@@ -458,6 +458,10 @@ module.exports.cancelOrder = async (req, res) => {
             { userId: userId },
             { $set: { amount: newWalletAmount } }
           );
+          await orderCollection.updateOne(
+            { _id: orderId },
+            { $set: { paymentStatus: "Repayed" } }
+          );
         }
       }
     }
@@ -564,7 +568,7 @@ module.exports.returnOrder = async (req, res) => {
 
     // save the order status
     orderData.orderStatus = "Returned";
-    orderData.paymentStatus = "Success";
+    orderData.paymentStatus = "Repayed";
     orderData.returnReason = returnReason;
     await orderData.save();
 
