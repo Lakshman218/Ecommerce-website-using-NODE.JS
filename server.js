@@ -3,7 +3,7 @@ const path = require("path");
 const app = express();
 const mongoose = require("mongoose");
 const cookieparser = require("cookie-parser");
-const session = require("cookie-session");
+const session = require("express-session");
 const nocache = require("nocache");
 const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
