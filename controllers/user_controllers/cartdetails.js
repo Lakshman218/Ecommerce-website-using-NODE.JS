@@ -190,7 +190,7 @@ module.exports.manageQuantity = async (req, res) => {
     const { productId, newQuantity } = req.query;
     const userData = await userCollection.findOne({ email: req.user });
     const userId = userData._id;
-    const cart = await cartCollection.findOne({ userId: userId });
+    const cart = await cartCollection.findOne({ userId: userId }); 
 
     for (const item of cart.products) {
       if (item._id == productId) {
