@@ -35,7 +35,7 @@ app.use(
   })
 );
 
-app.use("/", userRouter);
+app.use("/", userRouter); 
 app.use("/admin", adminRouter);
 
 const PORT = 3000;
