@@ -50,3 +50,5 @@ app.listen(PORT, async (req, res) => {
     console.log(err);
   }
 });
+
+module.exports = app
